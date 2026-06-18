@@ -9,7 +9,13 @@ export const focuspointChannelName = (itemFormElName) => `focuspoint:${itemFormE
 
 export const initStores = (initialValue, wizardConfig) => {
     wizardConfigStore.set(JSON.parse(wizardConfig));
-    focuspoints.set(JSON.parse(initialValue && initialValue !== '' ? initialValue : '[]'));
+
+  const initalFocuspoints = JSON.parse(initialValue && initialValue !== '' ? initialValue : '[]').map(focuspoint => ({
+    ...focuspoint,
+    shape: focuspoint.shape ?? 'rectangle'
+  }))
+
+    focuspoints.set(initalFocuspoints);
 }
 
 /**
@@ -95,6 +101,7 @@ export const createNewFocuspoint = () => {
     }, {});
 
     // set default values
+  newFocuspoint.shape = 'rectangle'
     newFocuspoint.x = 0.333;
     newFocuspoint.y =  0.333;
     newFocuspoint.width = parseFloat(config.defaultWidth);
