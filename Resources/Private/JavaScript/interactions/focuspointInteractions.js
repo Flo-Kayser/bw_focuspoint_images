@@ -113,10 +113,10 @@ const initRectangleInteraction = ({
 }
 
 const initLineInteraction = ({
-                               focuspoints,
-                               activateFocuspoint,
-                               getCanvasDimensions,
-                             }) => {
+                              focuspoints,
+                              activateFocuspoint,
+                              getCanvasDimensions,
+                            }) => {
   interact('.line-handle')
     .draggable({
       modifiers: [
@@ -231,10 +231,10 @@ const initCrosshairInteraction = ({
 }
 
 export const initFocuspointInteractions = ({
-                                             focuspoints,
-                                             activateFocuspoint,
-                                             getCanvasDimensions,
-                                           }) => {
+                                            focuspoints,
+                                            activateFocuspoint,
+                                            getCanvasDimensions,
+                                          }) => {
   const config = {
     focuspoints,
     activateFocuspoint,

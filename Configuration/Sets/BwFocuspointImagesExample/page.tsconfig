@@ -1,6 +1,6 @@
 mod.tx_bwfocuspointimages.settings.fields {
 
-   shape {
+  shape {
       title = Shape
       type = shape
       options {
