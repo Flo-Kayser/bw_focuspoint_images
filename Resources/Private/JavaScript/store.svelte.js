@@ -8,7 +8,13 @@ export const focuspoints = writable([]);
 export const focuspointChannelName = (itemFormElName) => `focuspoint:${itemFormElName}`
 
 export const initStores = (initialValue, wizardConfig) => {
-    wizardConfigStore.set(JSON.parse(wizardConfig));
+
+  const parsedWizardConfig = JSON.parse(wizardConfig)
+
+  wizardConfigStore.set({
+    ...parsedWizardConfig,
+    enabledShapes: parsedWizardConfig.enabledShapes ? parsedWizardConfig.enabledShapes.split(',').map((shape)=>shape.trim()).filter(Boolean) : ['rectangle']
+  })
 
   const initalFocuspoints = JSON.parse(initialValue && initialValue !== '' ? initialValue : '[]').map(focuspoint => ({
     ...focuspoint,

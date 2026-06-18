@@ -2,6 +2,7 @@ mod.tx_bwfocuspointimages.settings {
   resizable = 1
   defaultWidth = 0.2
   defaultHeight = 0.2
+  enabledShapes = rectangle
   fields {
 
   }
