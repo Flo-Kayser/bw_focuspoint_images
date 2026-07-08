@@ -34,11 +34,13 @@
     height={canvasHeight}
 >
     <polygon
+        class="polygon-shape"
+        data-index={index}
         points={getPolygonPoints()}
         onclick={(event) => {
-            event.stopPropagation()
-            activateFocuspoint(index)
-        }}
+        event.stopPropagation()
+        activateFocuspoint(index)
+    }}
     />
 </svg>
 
@@ -77,7 +79,11 @@
         stroke-dasharray: 6 4;
         vector-effect: non-scaling-stroke;
         pointer-events: all;
-        cursor: pointer;
+        cursor: grab;
+    }
+
+    .focuspoint-polygon polygon:active {
+        cursor: grabbing;
     }
 
     .focuspoint-polygon.active polygon {

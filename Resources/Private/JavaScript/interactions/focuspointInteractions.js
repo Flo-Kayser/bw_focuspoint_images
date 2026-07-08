@@ -176,6 +176,70 @@ const initPolygonInteraction = ({
         },
       },
     })
+  interact('.polygon-shape')
+    .draggable({
+      listeners: {
+        start(event) {
+          const index = getIndex(event)
+
+          if (index !== null) {
+            activateFocuspoint(index)
+          }
+        },
+
+        move(event) {
+          const index = getIndex(event)
+          const {
+            canvasWidth,
+            canvasHeight,
+            isValid,
+          } = getCanvasSize(getCanvasDimensions)
+
+          if (index === null || !isValid) {
+            return
+          }
+
+          focuspoints.update((items) =>
+            items.map((point, currentIndex) => {
+              if (
+                currentIndex !== index ||
+                !Array.isArray(point.vertices) ||
+                point.vertices.length === 0
+              ) {
+                return point
+              }
+
+              const minX = Math.min(...point.vertices.map((vertex) => vertex.x))
+              const maxX = Math.max(...point.vertices.map((vertex) => vertex.x))
+              const minY = Math.min(...point.vertices.map((vertex) => vertex.y))
+              const maxY = Math.max(...point.vertices.map((vertex) => vertex.y))
+
+              const requestedDeltaX = event.dx / canvasWidth
+              const requestedDeltaY = event.dy / canvasHeight
+
+              const deltaX = Math.max(
+                -minX,
+                Math.min(1 - maxX, requestedDeltaX)
+              )
+
+              const deltaY = Math.max(
+                -minY,
+                Math.min(1 - maxY, requestedDeltaY)
+              )
+
+              return {
+                ...point,
+                vertices: point.vertices.map((vertex) => ({
+                  ...vertex,
+                  x: vertex.x + deltaX,
+                  y: vertex.y + deltaY,
+                })),
+              }
+            })
+          )
+        },
+      },
+    })
 }
 const initLineInteraction = ({
                               focuspoints,
@@ -316,5 +380,6 @@ export const initFocuspointInteractions = ({
     interact('.line-handle').unset()
     interact('.crosshair-handle').unset()
     interact('.polygon-handle').unset()
+    interact('.polygon-shape').unset()
   }
 }
