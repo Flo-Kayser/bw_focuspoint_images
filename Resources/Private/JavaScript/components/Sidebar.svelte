@@ -6,7 +6,7 @@
         getIcon,
         iconStore,
         activateFocuspoint,
-        focusPointName, fieldMeetsCondition
+        focusPointName, fieldMeetsCondition, toggleFocuspoint
     } from '../store.svelte'
     import {onMount} from "svelte";
     import Select from "./Fields/Select.svelte";
@@ -69,7 +69,7 @@
                         <button
                             onclick={(e) => {
                                 e.preventDefault()
-                                activateFocuspoint(index)
+                                toggleFocuspoint(index)
                             }}
                             data-bs-toggle="collapse"
                             data-bs-target="#cropper-collapse-{index}"

@@ -1,6 +1,5 @@
 <script>
-    import interact from 'interactjs';
-    import {activateFocuspoint, focusPointName, focuspoints} from "../store.svelte";
+    import {activateFocuspoint,deactivateAllFocuspoints, focusPointName, focuspoints} from "../store.svelte";
     import {onDestroy, onMount} from "svelte";
     import FocuspointShape from "./Shapes/FocuspointShape.svelte";
 
@@ -46,11 +45,6 @@
         }
     }
 
-    // Helper function to clamps a value to the normalized range between 0 and 1.
-    function clamp(value) {
-        return Math.max(0, Math.min(1, value))
-    }
-
     // Helper function to move a point by x,y pixels
     function movePoint(index, deltaX, deltaY) {
         // Calculate the new positions in pixels
@@ -61,168 +55,6 @@
         $focuspoints[index].x = Math.max(0, Math.min(1, newX / canvasWidth));
         $focuspoints[index].y = Math.max(0, Math.min(1, newY / canvasHeight));
     }
-
-    interact('.draggable')
-        .resizable({
-            edges: {left: true, right: true, bottom: true, top: true},
-            modifiers: [
-                interact.modifiers.restrictEdges({
-                    outer: "parent",
-                    endOnly: true
-                }),
-            ],
-            listeners: {
-                move(event) {
-                    const index = parseInt(event.target.getAttribute('data-index'))
-
-                    $focuspoints[index].width = event.rect.width / canvasWidth
-                    $focuspoints[index].height = event.rect.height / canvasHeight
-
-                    const x = ($focuspoints[index].x * canvasWidth) + event.deltaRect.left
-                    const y = ($focuspoints[index].y * canvasHeight) + event.deltaRect.top
-
-                    $focuspoints[index].x = (x / canvasWidth)
-                    $focuspoints[index].y = (y / canvasHeight)
-                },
-                end(event) {
-                    const index = parseInt(event.target.getAttribute('data-index'))
-                    if ($focuspoints[index].active) {
-                        activateFocuspoint(index)
-                    }
-                }
-            }
-        })
-        .draggable({
-            modifiers: [
-                interact.modifiers.restrictRect({
-                    restriction: 'parent',
-                    endOnly: true
-                })
-            ],
-            autoScroll: true,
-            listeners: {
-                // call this function on every dragmove event
-                move(event) {
-                    const index = parseInt(event.target.getAttribute('data-index'))
-
-                    const x = ($focuspoints[index].x * canvasWidth) + event.dx;
-                    const y = ($focuspoints[index].y * canvasHeight) + event.dy;
-
-                    $focuspoints[index].x = (x / canvasWidth)
-                    $focuspoints[index].y = (y / canvasHeight)
-                },
-                end(event) {
-                    const index = parseInt(event.target.getAttribute('data-index'))
-                    if ($focuspoints[index].active) {
-                        activateFocuspoint(index)
-                    }
-                }
-            }
-        })
-    interact('.line-handle')
-        .draggable({
-            modifiers: [
-                interact.modifiers.restrictRect({
-                    restriction: 'parent',
-                    endOnly: false,
-                }),
-            ],
-            listeners: {
-                start(event) {
-                    const index = parseInt(event.target.getAttribute('data-index'), 10)
-
-                    if (Number.isNaN(index)) {
-                        return
-                    }
-
-                    activateFocuspoint(index)
-                },
-                move(event) {
-                    const index = parseInt(event.target.getAttribute('data-index'), 10)
-                    const handle = event.target.getAttribute('data-handle')
-
-                    if (Number.isNaN(index) || !handle || canvasWidth <= 0 || canvasHeight <= 0) {
-                        return
-                    }
-
-                    focuspoints.update((items) => items.map((point, currentIndex) => {
-                        if (currentIndex !== index) {
-                            return point
-                        }
-
-                        const fallbackX2 = clamp((point.x ?? 0) + (point.width ?? 0.2))
-                        const fallbackY2 = clamp((point.y ?? 0) + (point.height ?? 0.2))
-
-                        const currentX = handle === 'start'
-                            ? (point.x ?? 0) * canvasWidth
-                            : (point.x2 ?? fallbackX2) * canvasWidth
-
-                        const currentY = handle === 'start'
-                            ? (point.y ?? 0) * canvasHeight
-                            : (point.y2 ?? fallbackY2) * canvasHeight
-
-                        const nextX = clamp((currentX + event.dx) / canvasWidth)
-                        const nextY = clamp((currentY + event.dy) / canvasHeight)
-
-                        if (handle === 'start') {
-                            return {
-                                ...point,
-                                x: nextX,
-                                y: nextY,
-                            }
-                        }
-
-                        return {
-                            ...point,
-                            x2: nextX,
-                            y2: nextY,
-                        }
-                    }))
-                },
-            },
-        })
-    interact('.crosshair-handle')
-        .draggable({
-            modifiers: [
-                interact.modifiers.restrictRect({
-                    restriction: 'parent',
-                    endOnly: false,
-                }),
-            ],
-            listeners: {
-                start(event) {
-                    const index = parseInt(event.target.getAttribute('data-index'), 10)
-
-                    if (Number.isNaN(index)) {
-                        return
-                    }
-
-                    activateFocuspoint(index)
-                },
-                move(event) {
-                    const index = parseInt(event.target.getAttribute('data-index'), 10)
-
-                    if (Number.isNaN(index) || canvasWidth <= 0 || canvasHeight <= 0) {
-                        return
-                    }
-
-                    focuspoints.update((items) => items.map((point, currentIndex) => {
-                        if (currentIndex !== index) {
-                            return point
-                        }
-
-                        const currentX = (point.x ?? 0) * canvasWidth
-                        const currentY = (point.y ?? 0) * canvasHeight
-
-                        return {
-                            ...point,
-                            x: clamp((currentX + event.dx) / canvasWidth),
-                            y: clamp((currentY + event.dy) / canvasHeight),
-                        }
-                    }))
-                },
-            },
-        })
 
     onMount(() => {
         if (img.complete) {
@@ -321,8 +153,23 @@
 
 </style>
 
-<div class="cropper-bg" class:cropper-bg--dark={isDarkMode} touch-action="none">
-    <div class="wrapper">
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div
+    class="cropper-bg"
+    class:cropper-bg--dark={isDarkMode}
+    touch-action="none"
+    onclick={(event) => {
+        if (event.target === event.currentTarget) {
+            deactivateAllFocuspoints()
+        }
+    }}
+>
+    <div class="wrapper" onclick={(event) => {
+        if (event.target === event.currentTarget) {
+            deactivateAllFocuspoints()
+        }
+    }}>
         {#each $focuspoints as focuspoint, index}
             <FocuspointShape
                 {focuspoint}

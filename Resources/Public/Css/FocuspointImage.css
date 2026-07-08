@@ -42,3 +42,16 @@
 .focuspoint__description p {
     margin: 0;
 }
+
+.focuspoint-line line {
+    stroke: rgba(255, 255, 255, 0.9);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 6 4;
+    vector-effect: non-scaling-stroke;
+}
+
+.focuspoint-line.active line {
+    stroke: #ff8700;
+    stroke-dasharray: none;
+}

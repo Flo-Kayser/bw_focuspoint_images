@@ -135,18 +135,31 @@ export const getIcon = async (iconName) => {
 }
 
 export const activateFocuspoint = (index) => {
-    focuspoints.update((store) => {
-        store.forEach((focuspoint, i) => {
-            focuspoint.active = i === index ? !focuspoint.active : false;
-        });
-        return store;
-    })
+  focuspoints.update((store) =>
+    store.map((focuspoint, currentIndex) => ({
+      ...focuspoint,
+      active: currentIndex === index,
+    }))
+  )
 }
 
 export const deactivateAllFocuspoints = () => {
+  focuspoints.update((store) =>
+    store.map((focuspoint) => ({
+      ...focuspoint,
+      active: false,
+    }))
+  )
+}
+export const toggleFocuspoint = (index) => {
   focuspoints.update((store) => {
-    store.forEach(focuspoint => focuspoint.active = false);
-    return store;
+    const shouldActivate = !store[index]?.active
+
+    store.forEach((focuspoint, currentIndex) => {
+      focuspoint.active = shouldActivate && currentIndex === index
+    })
+
+    return store
   })
 }
 
