@@ -83,6 +83,8 @@
     })
 
     onDestroy(() => {
+
+        cleanupFocuspointInteractions?.()
         window.removeEventListener('resize', updateCanvasSizes)
         window.removeEventListener('keydown', handleKeyDown)
     })

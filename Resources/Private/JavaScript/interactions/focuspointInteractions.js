@@ -315,6 +315,6 @@ export const initFocuspointInteractions = ({
     interact('.draggable').unset()
     interact('.line-handle').unset()
     interact('.crosshair-handle').unset()
-    interact('polygon-handle').unset
+    interact('.polygon-handle').unset()
   }
 }
