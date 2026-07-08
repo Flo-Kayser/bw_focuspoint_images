@@ -1,5 +1,8 @@
 <script>
-    import {activateFocuspoint} from '../../store.svelte.js'
+    import {
+        activateFocuspoint,
+        focuspoints
+    } from '../../store.svelte.js'
 
     let {
         focuspoint,
@@ -22,6 +25,64 @@
     function getVertexY(vertex) {
         return vertex.y * canvasHeight
     }
+
+    function getEdgeMidpoints() {
+        const vertices = focuspoint?.vertices ?? []
+
+        return vertices.map((vertex, vertexIndex) => {
+            const nextVertex = vertices[(vertexIndex + 1) % vertices.length]
+
+            return {
+                x: (vertex.x + nextVertex.x) / 2,
+                y: (vertex.y + nextVertex.y) / 2,
+                insertAfterIndex: vertexIndex,
+            }
+        })
+    }
+
+    function addVertex(insertAfterIndex, vertex) {
+        focuspoints.update((items) =>
+            items.map((point, currentIndex) => {
+                if (currentIndex !== index) {
+                    return point
+                }
+
+                const vertices = [...point.vertices]
+
+                vertices.splice(insertAfterIndex + 1, 0, {
+                    x: vertex.x,
+                    y: vertex.y,
+                })
+
+                return {
+                    ...point,
+                    vertices,
+                }
+            })
+        )
+    }
+
+    function removeVertex(vertexIndex) {
+        focuspoints.update((items) =>
+            items.map((point, currentIndex) => {
+                if (
+                    currentIndex !== index ||
+                    !Array.isArray(point.vertices) ||
+                    point.vertices.length <= 3
+                ) {
+                    return point
+                }
+
+                return {
+                    ...point,
+                    vertices: point.vertices.filter(
+                        (_, currentVertexIndex) =>
+                            currentVertexIndex !== vertexIndex
+                    ),
+                }
+            })
+        )
+    }
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -38,28 +99,73 @@
         data-index={index}
         points={getPolygonPoints()}
         onclick={(event) => {
-        event.stopPropagation()
-        activateFocuspoint(index)
-    }}
+            event.stopPropagation()
+            activateFocuspoint(index)
+        }}
     />
 </svg>
 
 {#if focuspoint?.active}
     {#each focuspoint.vertices ?? [] as vertex, vertexIndex}
+        <div
+            class="polygon-vertex"
+            class:opacity-0={!initialized}
+            style="transform: translate3d({getVertexX(vertex)}px, {getVertexY(vertex)}px, 0);"
+        >
+            <button
+                type="button"
+                class="polygon-handle"
+                data-index={index}
+                data-vertex-index={vertexIndex}
+                onclick={(event) => {
+            event.preventDefault()
+            event.stopPropagation()
+            activateFocuspoint(index)
+        }}
+                aria-label="Move polygon vertex {vertexIndex + 1}"
+            ></button>
+
+            {#if focuspoint.vertices.length > 3}
+                <button
+                    type="button"
+                    class="polygon-remove-handle"
+                    onclick={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
+                removeVertex(vertexIndex)
+            }}
+                    aria-label="Remove polygon vertex {vertexIndex + 1}"
+                >
+                    <svg
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                    >
+                        <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm-2 6h10l-1 12H8L7 9Zm3 2v7h2v-7h-2Zm4 0v7h2v-7h-2Z" />
+                    </svg>
+                </button>
+            {/if}
+        </div>
+    {/each}
+
+    {#each getEdgeMidpoints() as midpoint}
         <button
             type="button"
-            class="polygon-handle"
+            class="polygon-add-handle"
             class:opacity-0={!initialized}
-            data-index={index}
-            data-vertex-index={vertexIndex}
-            style="transform: translate3d({getVertexX(vertex)}px, {getVertexY(vertex)}px, 0) translate(-50%, -50%);"
+            style="transform: translate3d({getVertexX(midpoint)}px, {getVertexY(midpoint)}px, 0) translate(-50%, -50%);"
             onclick={(event) => {
                 event.preventDefault()
                 event.stopPropagation()
-                activateFocuspoint(index)
+
+                addVertex(
+                    midpoint.insertAfterIndex,
+                    midpoint
+                )
             }}
-            aria-label="Move polygon vertex {vertexIndex + 1}"
-        ></button>
+            aria-label="Add polygon vertex"
+        >
+            +
+        </button>
     {/each}
 {/if}
 
@@ -67,7 +173,6 @@
     .focuspoint-polygon {
         position: absolute;
         inset: 0;
-        overflow: visible;
         pointer-events: none;
         transition: opacity 0.15s ease;
     }
@@ -77,7 +182,6 @@
         stroke: rgba(255, 255, 255, 0.9);
         stroke-width: 2;
         stroke-dasharray: 6 4;
-        vector-effect: non-scaling-stroke;
         pointer-events: all;
         cursor: grab;
     }
@@ -92,20 +196,102 @@
         stroke-dasharray: none;
     }
 
+    .polygon-vertex,
+    .polygon-add-handle {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    .polygon-vertex {
+        z-index: 7;
+    }
+
     .polygon-handle {
         position: absolute;
-        z-index: 6;
+        top: 0;
+        left: 0;
+
         width: 14px;
         height: 14px;
         padding: 0;
+
         border: 2px solid #ff8700;
         border-radius: 50%;
         background: rgba(0, 0, 0, 0.8);
+
+        transform: translate(-50%, -50%);
         cursor: grab;
     }
 
     .polygon-handle:active {
         cursor: grabbing;
+    }
+
+    .polygon-handle:focus-visible {
+        outline: 2px solid #fff;
+        outline-offset: 2px;
+    }
+
+    .polygon-add-handle {
+        z-index: 6;
+
+        display: grid;
+        place-items: center;
+
+        width: 18px;
+        height: 18px;
+        padding: 0;
+
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.75);
+        color: #fff;
+
+        font-size: 14px;
+        line-height: 1;
+
+        cursor: pointer;
+    }
+
+    .polygon-add-handle:hover {
+        border-color: #ff8700;
+        color: #ff8700;
+    }
+
+    .polygon-remove-handle {
+        position: absolute;
+        top: 12px;
+        left: 0;
+
+        display: grid;
+        place-items: center;
+
+        width: 24px;
+        height: 24px;
+        padding: 0;
+
+        border: 0;
+        border-radius: 4px;
+        background: #dc3545;
+        color: #fff;
+
+        transform: translateX(-50%);
+
+        opacity: 0;
+        pointer-events: none;
+        cursor: pointer;
+    }
+
+    .polygon-remove-handle svg {
+        width: 14px;
+        height: 14px;
+        fill: currentColor;
+    }
+
+    .polygon-vertex:focus-within .polygon-remove-handle {
+        opacity: 1;
+        pointer-events: auto;
     }
 
     .opacity-0 {
