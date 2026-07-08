@@ -155,11 +155,10 @@ export const toggleFocuspoint = (index) => {
   focuspoints.update((store) => {
     const shouldActivate = !store[index]?.active
 
-    store.forEach((focuspoint, currentIndex) => {
-      focuspoint.active = shouldActivate && currentIndex === index
-    })
-
-    return store
+    return store.map((focuspoint, currentIndex) => ({
+      ...focuspoint,
+      active: shouldActivate && currentIndex === index,
+    }))
   })
 }
 

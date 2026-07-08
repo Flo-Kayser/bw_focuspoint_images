@@ -14,6 +14,28 @@
                 return focuspoint
             }
 
+            if (value === 'polygon' && focuspoint.shape !== 'polygon') {
+                const x = focuspoint.x ?? 0.25
+                const y = focuspoint.y ?? 0.25
+                const width = focuspoint.width ?? 0.2
+                const height = focuspoint.height ?? 0.2
+
+                const vertices = Array.isArray(focuspoint.vertices) && focuspoint.vertices.length >= 3
+                    ? focuspoint.vertices
+                    : [
+                        {x: clamp(x), y: clamp(y)},
+                        {x: clamp(x + width), y: clamp(y)},
+                        {x: clamp(x + width), y: clamp(y + height)},
+                        {x: clamp(x), y: clamp(y + height)},
+                    ]
+
+                return {
+                    ...focuspoint,
+                    [name]: value,
+                    vertices,
+                }
+            }
+
             if (value === 'crosshair' && focuspoint.shape !== 'crosshair') {
                 return {
                     ...focuspoint,
@@ -70,6 +92,10 @@
                         <svg viewBox="0 0 24 24">
                             <line x1="12" y1="4" x2="12" y2="20" />
                             <line x1="4" y1="12" x2="20" y2="12" />
+                        </svg>
+                    {:else if value === 'polygon'}
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="5,18 7,7 16,4 20,11 17,19 10,21"/>
                         </svg>
                     {:else}
                         {label}

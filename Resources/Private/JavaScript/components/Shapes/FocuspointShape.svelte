@@ -4,6 +4,7 @@
     import Ellipse from './Ellipse.svelte'
     import Line from './Line.svelte'
     import Crosshair from "./Crosshair.svelte";
+    import Polygon from "./Polygon.svelte";
 
     let {
         index,
@@ -22,6 +23,7 @@
         circle: Ellipse,
         line: Line,
         crosshair: Crosshair,
+        polygon: Polygon,
     }
 
     let focuspoint = $derived($focuspoints[index])

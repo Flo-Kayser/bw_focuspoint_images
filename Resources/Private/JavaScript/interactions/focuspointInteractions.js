@@ -18,6 +18,15 @@ const getCanvasSize = (getCanvasDimensions) => {
   }
 }
 
+const getVertexIndex = (event) => {
+  const vertexIndex = parseInt(
+    event.target.getAttribute('data-vertex-index'),
+    10
+  )
+
+  return Number.isNaN(vertexIndex) ? null : vertexIndex
+}
+
 const initRectangleInteraction = ({
                                     focuspoints,
                                     activateFocuspoint,
@@ -112,6 +121,62 @@ const initRectangleInteraction = ({
     })
 }
 
+
+const initPolygonInteraction = ({
+                                  focuspoints,
+                                  activateFocuspoint,
+                                  getCanvasDimensions,
+                                }) => {
+  interact('.polygon-handle')
+    .draggable({
+      listeners: {
+        start(event) {
+          const index = getIndex(event)
+
+          if (index !== null) {
+            activateFocuspoint(index)
+          }
+        },
+
+        move(event) {
+          const index = getIndex(event)
+          const vertexIndex = getVertexIndex(event)
+          const {
+            canvasWidth,
+            canvasHeight,
+            isValid,
+          } = getCanvasSize(getCanvasDimensions)
+
+          if (index === null || vertexIndex === null || !isValid) {
+            return
+          }
+
+          focuspoints.update((items) =>
+            items.map((point, currentIndex) => {
+              if (currentIndex !== index || !Array.isArray(point.vertices)) {
+                return point
+              }
+
+              return {
+                ...point,
+                vertices: point.vertices.map((vertex, currentVertexIndex) => {
+                  if (currentVertexIndex !== vertexIndex) {
+                    return vertex
+                  }
+
+                  return {
+                    ...vertex,
+                    x: clamp(vertex.x + (event.dx / canvasWidth)),
+                    y: clamp(vertex.y + (event.dy / canvasHeight)),
+                  }
+                }),
+              }
+            })
+          )
+        },
+      },
+    })
+}
 const initLineInteraction = ({
                               focuspoints,
                               activateFocuspoint,
@@ -244,10 +309,12 @@ export const initFocuspointInteractions = ({
   initRectangleInteraction(config)
   initLineInteraction(config)
   initCrosshairInteraction(config)
+  initPolygonInteraction(config)
 
   return () => {
     interact('.draggable').unset()
     interact('.line-handle').unset()
     interact('.crosshair-handle').unset()
+    interact('polygon-handle').unset
   }
 }
