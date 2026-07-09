@@ -12,7 +12,7 @@ export const initStores = (initialValue, wizardConfig) => {
 
   wizardConfigStore.set({
     ...parsedWizardConfig,
-    enabledShapes: parsedWizardConfig.enabledShapes ? parsedWizardConfig.enabledShapes.split(',').map((shape)=>shape.trim()).filter(Boolean) : ['rectangle']
+    shapes: parsedWizardConfig.shapes ?? ['rectangle']
   })
 
   const initalFocuspoints = JSON.parse(initialValue && initialValue !== '' ? initialValue : '[]').map(focuspoint => ({
@@ -105,7 +105,7 @@ export const createNewFocuspoint = () => {
       return acc;
     }, {});
 
-    newFocuspoint.shape ??= 'rectangle'
+    newFocuspoint.shape ??= config.shapes[0] ?? 'rectangle'
     // set default values
     newFocuspoint.x = 0.333;
     newFocuspoint.y =  0.333;
