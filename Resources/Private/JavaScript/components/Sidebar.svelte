@@ -34,7 +34,6 @@
         select: Select,
         link: Link,
         checkbox: Checkbox,
-        shape: Shape
     };
 </script>
 
@@ -93,6 +92,12 @@
                     role="tabpanel"
                     aria-labelledby="cropper-accordion-heading-{index}">
                     <div class="panel-body">
+                        {#if $wizardConfigStore.shapes.length > 1}
+                            <Shape
+                                {index}
+                                shapes={$wizardConfigStore.shapes}
+                            />
+                        {/if}
                         {#each Object.entries($wizardConfigStore.fields) as [key, field]}
                             {#if fieldMeetsCondition(key, focuspoint)}
                                 <svelte:component this={components[field.type]} index={index} name={key} config={field ?? {}} />

@@ -1,9 +1,11 @@
 <script>
     import {focuspoints} from '../../store.svelte.js'
 
-    let {config, index, name} = $props()
-    let options = Object.entries(config.options).map(([value, label]) => ({value, label}))
-
+    let {shapes, index} = $props()
+    let options = $derived(shapes.map(value => ({
+        value,
+        label: value
+    })))
     function clamp(value) {
         return Math.max(0, Math.min(1, value))
     }
@@ -31,7 +33,7 @@
 
                 return {
                     ...focuspoint,
-                    [name]: value,
+                    shape: value,
                     vertices,
                 }
             }
@@ -39,7 +41,7 @@
             if (value === 'crosshair' && focuspoint.shape !== 'crosshair') {
                 return {
                     ...focuspoint,
-                    [name]: value,
+                    shape: value,
                     x: clamp((focuspoint.x ?? 0) + ((focuspoint.width ?? 0) / 2)),
                     y: clamp((focuspoint.y ?? 0) + ((focuspoint.height ?? 0) / 2)),
                 }
@@ -47,28 +49,24 @@
 
             return {
                 ...focuspoint,
-                [name]: value,
+                shape: value,
             }
         }))
     }
 </script>
 
 <div class="form-group">
-    <label class="form-label" id="input-{index}-{name}-label">
-        {config.title}
-    </label>
 
     <div
         class="shape-select"
         role="radiogroup"
-        aria-labelledby="input-{index}-{name}-label"
     >
         {#each options as {value, label}}
             <button
                 type="button"
                 class="shape-select__button"
-                class:shape-select__button--active={$focuspoints[index][name] === value}
-                aria-pressed={$focuspoints[index][name] === value}
+                class:shape-select__button--active={$focuspoints[index].shape === value}
+                aria-pressed={$focuspoints[index].shape === value}
                 title={label}
                 onclick={(event) => {
                     event.preventDefault()
