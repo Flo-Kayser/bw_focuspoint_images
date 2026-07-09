@@ -65,7 +65,7 @@ class HelperUtility
         return $pageTs;
     }
 
-    private function resolveShapes(array $shapes): array
+    private function resolveShapes(?array $shapes): array
     {
         if(empty($shapes)){
             return self::LEGACY_SHAPES;
