@@ -1,44 +1,42 @@
-mod.tx_bwfocuspointimages.settings.fields {
+mod.tx_bwfocuspointimages.settings {
 
-  shape {
-      title = Shape
-      type = shape
-      options {
-        rectangle = Rectangle
-        circle = Circle
-        line = Line
-        crosshair = Crosshair
-        polygon = Polygon
-      }
-      default = rectangle
+  shapes {
+    rectangle = 1
+    ellipse = 1
+    line = 1
+    crosshair = 1
+    polygon = 1
   }
 
-  name {
-    title = LLL:EXT:bw_focuspoint_images/Resources/Private/Language/locallang_db.xlf:wizard.fields.name
-    type = text
-    useAsName = 1
-  }
+  fields {
 
-  description {
-    title = LLL:EXT:bw_focuspoint_images/Resources/Private/Language/locallang_db.xlf:wizard.fields.description
-    type = textarea
-  }
-
-  color {
-    title = LLL:EXT:bw_focuspoint_images/Resources/Private/Language/locallang_db.xlf:wizard.fields.color
-    type = select
-    options {
-      red = LLL:EXT:bw_focuspoint_images/Resources/Private/Language/locallang_db.xlf:wizard.fields.color.red
-      green = LLL:EXT:bw_focuspoint_images/Resources/Private/Language/locallang_db.xlf:wizard.fields.color.green
-      blue = LLL:EXT:bw_focuspoint_images/Resources/Private/Language/locallang_db.xlf:wizard.fields.color.blue
+    name {
+      title = LLL:EXT:bw_focuspoint_images/Resources/Private/Language/locallang_db.xlf:wizard.fields.name
+      type = text
+      useAsName = 1
     }
-    default = red
-  }
 
-  link {
-    title = LLL:EXT:bw_focuspoint_images/Resources/Private/Language/locallang_db.xlf:wizard.fields.link
-    type = link
-    displayCond = FIELD:color:=:red
-  }
+    description {
+      title = LLL:EXT:bw_focuspoint_images/Resources/Private/Language/locallang_db.xlf:wizard.fields.description
+      type = textarea
+    }
 
+    color {
+      title = LLL:EXT:bw_focuspoint_images/Resources/Private/Language/locallang_db.xlf:wizard.fields.color
+      type = select
+      options {
+        red = LLL:EXT:bw_focuspoint_images/Resources/Private/Language/locallang_db.xlf:wizard.fields.color.red
+        green = LLL:EXT:bw_focuspoint_images/Resources/Private/Language/locallang_db.xlf:wizard.fields.color.green
+        blue = LLL:EXT:bw_focuspoint_images/Resources/Private/Language/locallang_db.xlf:wizard.fields.color.blue
+      }
+      default = red
+    }
+
+    link {
+      title = LLL:EXT:bw_focuspoint_images/Resources/Private/Language/locallang_db.xlf:wizard.fields.link
+      type = link
+      displayCond = FIELD:color:=:red
+    }
+
+  }
 }
