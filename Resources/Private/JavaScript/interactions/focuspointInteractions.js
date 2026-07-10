@@ -27,100 +27,6 @@ const getVertexIndex = (event) => {
   return Number.isNaN(vertexIndex) ? null : vertexIndex
 }
 
-const initRectangleInteraction = ({
-                                    focuspoints,
-                                    activateFocuspoint,
-                                    getCanvasDimensions,
-                                  }) => {
-  interact('.draggable')
-    .resizable({
-      edges: { left: true, right: true, bottom: true, top: true },
-      modifiers: [
-        interact.modifiers.restrictEdges({
-          outer: 'parent',
-          endOnly: true,
-        }),
-      ],
-      listeners: {
-        move(event) {
-          const index = getIndex(event)
-          const { canvasWidth, canvasHeight, isValid } = getCanvasSize(getCanvasDimensions)
-
-          if (index === null || !isValid) {
-            return
-          }
-
-          focuspoints.update((items) => items.map((point, currentIndex) => {
-            if (currentIndex !== index) {
-              return point
-            }
-
-            const x = ((point.x ?? 0) * canvasWidth) + event.deltaRect.left
-            const y = ((point.y ?? 0) * canvasHeight) + event.deltaRect.top
-
-            return {
-              ...point,
-              width: event.rect.width / canvasWidth,
-              height: event.rect.height / canvasHeight,
-              x: clamp(x / canvasWidth),
-              y: clamp(y / canvasHeight),
-            }
-          }))
-        },
-
-        end(event) {
-          const index = getIndex(event)
-
-          if (index !== null) {
-            activateFocuspoint(index)
-          }
-        },
-      },
-    })
-    .draggable({
-      modifiers: [
-        interact.modifiers.restrictRect({
-          restriction: 'parent',
-          endOnly: true,
-        }),
-      ],
-      autoScroll: true,
-      listeners: {
-        move(event) {
-          const index = getIndex(event)
-          const { canvasWidth, canvasHeight, isValid } = getCanvasSize(getCanvasDimensions)
-
-          if (index === null || !isValid) {
-            return
-          }
-
-          focuspoints.update((items) => items.map((point, currentIndex) => {
-            if (currentIndex !== index) {
-              return point
-            }
-
-            const x = ((point.x ?? 0) * canvasWidth) + event.dx
-            const y = ((point.y ?? 0) * canvasHeight) + event.dy
-
-            return {
-              ...point,
-              x: clamp(x / canvasWidth),
-              y: clamp(y / canvasHeight),
-            }
-          }))
-        },
-
-        end(event) {
-          const index = getIndex(event)
-
-          if (index !== null) {
-            activateFocuspoint(index)
-          }
-        },
-      },
-    })
-}
-
 
 const initPolygonInteraction = ({
                                   focuspoints,
@@ -370,13 +276,11 @@ export const initFocuspointInteractions = ({
     getCanvasDimensions,
   }
 
-  initRectangleInteraction(config)
   initLineInteraction(config)
   initCrosshairInteraction(config)
   initPolygonInteraction(config)
 
   return () => {
-    interact('.draggable').unset()
     interact('.line-handle').unset()
     interact('.crosshair-handle').unset()
     interact('.polygon-handle').unset()

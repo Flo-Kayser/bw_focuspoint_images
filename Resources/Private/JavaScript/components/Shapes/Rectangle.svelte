@@ -1,26 +1,130 @@
 <script>
-    import {activateFocuspoint, focusPointName} from '../../store.svelte.js'
+    import interact from 'interactjs'
+    import {activateFocuspoint, focusPointName, focuspoints} from '../../store.svelte.js'
 
     let {
         focuspoint,
         index,
         initialized,
+        canvasWidth,
+        canvasHeight,
         getPositionX,
         getPositionY,
         getFocuspointWidth,
         getFocuspointHeight
     } = $props()
 
-    let focuspointName = $derived((focuspoint, index) => focusPointName(index))
+    let focuspointName = $derived(
+        (focuspoint, index) => focusPointName(index)
+    )
+
+    function clamp(value) {
+        return Math.max(0, Math.min(1, value))
+    }
+
+    function rectangleInteraction(node) {
+        const interactable = interact(node)
+            .resizable({
+                edges: {
+                    left: true,
+                    right: true,
+                    bottom: true,
+                    top: true,
+                },
+                modifiers: [
+                    interact.modifiers.restrictEdges({
+                        outer: 'parent',
+                        endOnly: true
+                    })
+                ],
+                listeners: {
+                    move(event) {
+                        if (canvasWidth <= 0 || canvasHeight <= 0) {
+                            return
+                        }
+
+                        focuspoints.update(items =>
+                            items.map((point, currentIndex) => {
+                                if (currentIndex !== index) {
+                                    return point
+                                }
+
+                                const x = ((point.x ?? 0) * canvasWidth) + event.deltaRect.left
+                                const y = ((point.y ?? 0) * canvasHeight) + event.deltaRect.top
+
+                                return {
+                                    ...point,
+                                    width: event.rect.width/canvasWidth,
+                                    height: event.rect.height/canvasHeight,
+                                    x: clamp(x/canvasWidth),
+                                    y: clamp(y/canvasHeight)
+                                }
+                            })
+                        )
+                    },
+                    end(){
+                        activateFocuspoint(index)
+                    }
+                }
+            })
+            .draggable({
+                modifiers: [
+                    interact.modifiers.restrictRect({
+                        restriction: 'parent',
+                        endOnly: true
+                    })
+                ],
+                autoScroll: true,
+                listeners: {
+                    move(event) {
+                        if (canvasWidth <= 0 || canvasHeight <= 0) {
+                            return
+                        }
+
+                        focuspoints.update((items) =>
+                            items.map((point, currentIndex) => {
+                                if (currentIndex !== index) {
+                                    return point
+                                }
+
+                                const x =
+                                    ((point.x ?? 0) * canvasWidth) +
+                                    event.dx
+
+                                const y =
+                                    ((point.y ?? 0) * canvasHeight) +
+                                    event.dy
+
+                                return {
+                                    ...point,
+                                    x: clamp(x / canvasWidth),
+                                    y: clamp(y / canvasHeight)
+                                }
+                            })
+                        )
+                    },
+
+                    end() {
+                        activateFocuspoint(index)
+                    }
+                }
+            })
+
+        return {
+            destroy() {
+                interactable.unset()
+            }
+        }
+    }
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
+    use:rectangleInteraction
     onclick={() => activateFocuspoint(index)}
     class:active={focuspoint.active}
     class:opacity-0={!initialized}
-    data-index={index}
     class="draggable style1 resizable focuspoint-shape focuspoint-shape--{focuspoint.shape ?? 'rectangle'}"
     style="transform:translate3d({getPositionX(index)}px, {getPositionY(index)}px, 0); width: {getFocuspointWidth(index)}px; height: {getFocuspointHeight(index)}px;"
     data-x="{getPositionX(index)}"
