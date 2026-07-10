@@ -136,12 +136,12 @@
             }}
                     aria-label="Remove polygon vertex {vertexIndex + 1}"
                 >
-                    <svg
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                    >
-                        <path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm-2 6h10l-1 12H8L7 9Zm3 2v7h2v-7h-2Zm4 0v7h2v-7h-2Z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M0 0h24v24H0z" fill="none" />
+                        <path fill="currentColor" d="M17 6V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v2H2v2h2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8h2V6zM9 4h6v2H9zM6 20V8h12v12z" />
+                        <path fill="currentColor" d="M9 10h2v8H9zm4 0h2v8h-2z" />
                     </svg>
+
                 </button>
             {/if}
         </div>
@@ -267,12 +267,12 @@
         display: grid;
         place-items: center;
 
-        width: 24px;
-        height: 24px;
+        width: 30px;
+        height: 30px;
         padding: 0;
 
         border: 0;
-        border-radius: 4px;
+        border-radius: 2px;
         background: #dc3545;
         color: #fff;
 
