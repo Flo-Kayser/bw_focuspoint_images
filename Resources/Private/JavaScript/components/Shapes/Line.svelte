@@ -1,4 +1,5 @@
 <script>
+    import interact from 'interactjs'
     import {activateFocuspoint, focuspoints} from '../../store.svelte.js'
 
     let {
@@ -62,6 +63,77 @@
     $effect(() => {
         ensureLineEndPoint()
     })
+
+    function lineHandleInteraction(node, handle) {
+        const interactable = interact(node).draggable({
+            modifiers: [
+                interact.modifiers.restrictRect({
+                    restriction: 'parent',
+                    endOnly: false,
+                }),
+            ],
+            listeners: {
+                start() {
+                    activateFocuspoint(index)
+                },
+
+                move(event) {
+                    if (canvasWidth <= 0 || canvasHeight <= 0) {
+                        return
+                    }
+
+                    focuspoints.update((items) =>
+                        items.map((point, currentIndex) => {
+                            if (currentIndex !== index) {
+                                return point
+                            }
+
+                            const fallbackX2 = clamp(
+                                (point.x ?? 0) + (point.width ?? 0.2)
+                            )
+
+                            const fallbackY2 = clamp(
+                                (point.y ?? 0) + (point.height ?? 0.2)
+                            )
+
+                            const currentX =
+                                handle === 'start'
+                                    ? (point.x ?? 0) * canvasWidth
+                                    : (point.x2 ?? fallbackX2) * canvasWidth
+
+                            const currentY =
+                                handle === 'start'
+                                    ? (point.y ?? 0) * canvasHeight
+                                    : (point.y2 ?? fallbackY2) * canvasHeight
+
+                            const nextX = clamp((currentX + event.dx) / canvasWidth)
+                            const nextY = clamp((currentY + event.dy) / canvasHeight)
+
+                            if (handle === 'start') {
+                                return {
+                                    ...point,
+                                    x: nextX,
+                                    y: nextY,
+                                }
+                            }
+
+                            return {
+                                ...point,
+                                x2: nextX,
+                                y2: nextY,
+                            }
+                        })
+                    )
+                },
+            },
+        })
+
+        return {
+            destroy() {
+                interactable.unset()
+            },
+        }
+    }
 </script>
 
 <svg
@@ -81,10 +153,9 @@
 <button
     type="button"
     class="line-handle"
+    use:lineHandleInteraction={'start'}
     class:active={focuspoint?.active}
     class:opacity-0={!initialized}
-    data-index={index}
-    data-handle="start"
     style="transform: translate3d({getStartX()}px, {getStartY()}px, 0) translate(-50%, -50%);"
     onclick={(event) => {
         event.preventDefault()
@@ -96,10 +167,9 @@
 <button
     type="button"
     class="line-handle"
+    use:lineHandleInteraction={'end'}
     class:active={focuspoint?.active}
     class:opacity-0={!initialized}
-    data-index={index}
-    data-handle="end"
     style="transform: translate3d({getEndX()}px, {getEndY()}px, 0) translate(-50%, -50%);"
     onclick={(event) => {
         event.preventDefault()

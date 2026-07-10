@@ -147,75 +147,6 @@ const initPolygonInteraction = ({
       },
     })
 }
-const initLineInteraction = ({
-                              focuspoints,
-                              activateFocuspoint,
-                              getCanvasDimensions,
-                            }) => {
-  interact('.line-handle')
-    .draggable({
-      modifiers: [
-        interact.modifiers.restrictRect({
-          restriction: 'parent',
-          endOnly: false,
-        }),
-      ],
-      listeners: {
-        start(event) {
-          const index = getIndex(event)
-
-          if (index !== null) {
-            activateFocuspoint(index)
-          }
-        },
-
-        move(event) {
-          const index = getIndex(event)
-          const handle = event.target.getAttribute('data-handle')
-          const { canvasWidth, canvasHeight, isValid } = getCanvasSize(getCanvasDimensions)
-
-          if (index === null || !handle || !isValid) {
-            return
-          }
-
-          focuspoints.update((items) => items.map((point, currentIndex) => {
-            if (currentIndex !== index) {
-              return point
-            }
-
-            const fallbackX2 = clamp((point.x ?? 0) + (point.width ?? 0.2))
-            const fallbackY2 = clamp((point.y ?? 0) + (point.height ?? 0.2))
-
-            const currentX = handle === 'start'
-              ? (point.x ?? 0) * canvasWidth
-              : (point.x2 ?? fallbackX2) * canvasWidth
-
-            const currentY = handle === 'start'
-              ? (point.y ?? 0) * canvasHeight
-              : (point.y2 ?? fallbackY2) * canvasHeight
-
-            const nextX = clamp((currentX + event.dx) / canvasWidth)
-            const nextY = clamp((currentY + event.dy) / canvasHeight)
-
-            if (handle === 'start') {
-              return {
-                ...point,
-                x: nextX,
-                y: nextY,
-              }
-            }
-
-            return {
-              ...point,
-              x2: nextX,
-              y2: nextY,
-            }
-          }))
-        },
-      },
-    })
-}
-
 const initCrosshairInteraction = ({
                                     focuspoints,
                                     activateFocuspoint,
@@ -276,12 +207,10 @@ export const initFocuspointInteractions = ({
     getCanvasDimensions,
   }
 
-  initLineInteraction(config)
   initCrosshairInteraction(config)
   initPolygonInteraction(config)
 
   return () => {
-    interact('.line-handle').unset()
     interact('.crosshair-handle').unset()
     interact('.polygon-handle').unset()
     interact('.polygon-shape').unset()
