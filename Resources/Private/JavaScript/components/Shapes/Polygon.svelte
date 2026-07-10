@@ -1,4 +1,5 @@
 <script>
+    import interact from 'interactjs'
     import {
         activateFocuspoint,
         focuspoints
@@ -83,6 +84,119 @@
             })
         )
     }
+
+    function clamp(value) {
+        return Math.max(0, Math.min(1, value))
+    }
+
+    function polygonVertexInteraction(node, vertexIndex) {
+        const interactable = interact(node).draggable({
+            listeners: {
+                start() {
+                    activateFocuspoint(index)
+                },
+
+                move(event) {
+                    if (canvasWidth <= 0 || canvasHeight <= 0) {
+                        return
+                    }
+
+                    focuspoints.update((items) =>
+                        items.map((point, currentIndex) => {
+                            if (
+                                currentIndex !== index ||
+                                !Array.isArray(point.vertices)
+                            ) {
+                                return point
+                            }
+
+                            return {
+                                ...point,
+                                vertices: point.vertices.map((vertex, currentVertexIndex) => {
+                                    if (currentVertexIndex !== vertexIndex) {
+                                        return vertex
+                                    }
+
+                                    return {
+                                        ...vertex,
+                                        x: clamp(vertex.x + event.dx / canvasWidth),
+                                        y: clamp(vertex.y + event.dy / canvasHeight),
+                                    }
+                                }),
+                            }
+                        })
+                    )
+                },
+            },
+        })
+
+        return {
+            destroy() {
+                interactable.unset()
+            },
+        }
+    }
+
+    function polygonShapeInteraction(node) {
+        const interactable = interact(node).draggable({
+            listeners: {
+                start() {
+                    activateFocuspoint(index)
+                },
+
+                move(event) {
+                    if (canvasWidth <= 0 || canvasHeight <= 0) {
+                        return
+                    }
+
+                    focuspoints.update((items) =>
+                        items.map((point, currentIndex) => {
+                            if (
+                                currentIndex !== index ||
+                                !Array.isArray(point.vertices) ||
+                                point.vertices.length === 0
+                            ) {
+                                return point
+                            }
+
+                            const minX = Math.min(...point.vertices.map((vertex) => vertex.x))
+                            const maxX = Math.max(...point.vertices.map((vertex) => vertex.x))
+                            const minY = Math.min(...point.vertices.map((vertex) => vertex.y))
+                            const maxY = Math.max(...point.vertices.map((vertex) => vertex.y))
+
+                            const requestedDeltaX = event.dx / canvasWidth
+                            const requestedDeltaY = event.dy / canvasHeight
+
+                            const deltaX = Math.max(
+                                -minX,
+                                Math.min(1 - maxX, requestedDeltaX)
+                            )
+
+                            const deltaY = Math.max(
+                                -minY,
+                                Math.min(1 - maxY, requestedDeltaY)
+                            )
+
+                            return {
+                                ...point,
+                                vertices: point.vertices.map((vertex) => ({
+                                    ...vertex,
+                                    x: vertex.x + deltaX,
+                                    y: vertex.y + deltaY,
+                                })),
+                            }
+                        })
+                    )
+                },
+            },
+        })
+
+        return {
+            destroy() {
+                interactable.unset()
+            },
+        }
+    }
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -96,7 +210,7 @@
 >
     <polygon
         class="polygon-shape"
-        data-index={index}
+        use:polygonShapeInteraction
         points={getPolygonPoints()}
         onclick={(event) => {
             event.stopPropagation()
@@ -114,9 +228,8 @@
         >
             <button
                 type="button"
+                use:polygonVertexInteraction={vertexIndex}
                 class="polygon-handle"
-                data-index={index}
-                data-vertex-index={vertexIndex}
                 onclick={(event) => {
             event.preventDefault()
             event.stopPropagation()

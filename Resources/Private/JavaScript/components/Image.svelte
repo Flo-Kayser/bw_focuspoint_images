@@ -3,7 +3,6 @@
     import {onDestroy, onMount} from "svelte";
     import FocuspointShape from "./Shapes/FocuspointShape.svelte";
 
-    import {initFocuspointInteractions} from "../interactions/focuspointInteractions";
 
     let {image} = $props()
     let canvasHeight = $state(0)
@@ -13,7 +12,6 @@
     let initialized = $state(false)
     let isDarkMode = $state(false)
 
-    let cleanupFocuspointInteractions
 
     // Handle keyboard navigation
     function handleKeyDown(event) {
@@ -62,14 +60,7 @@
         } else {
             img.addEventListener('load', setCanvasSizes)
         }
-        cleanupFocuspointInteractions = initFocuspointInteractions({
-            focuspoints,
-            activateFocuspoint,
-            getCanvasDimensions: () => ({
-                canvasWidth,
-                canvasHeight,
-            }),
-        })
+
 
         window.addEventListener('resize', updateCanvasSizes)
         window.addEventListener('keydown', handleKeyDown)
@@ -84,7 +75,6 @@
 
     onDestroy(() => {
 
-        cleanupFocuspointInteractions?.()
         window.removeEventListener('resize', updateCanvasSizes)
         window.removeEventListener('keydown', handleKeyDown)
     })
