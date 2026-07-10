@@ -67,14 +67,14 @@ class HelperUtility
 
     private function resolveShapes(?array $shapes): array
     {
-        if(empty($shapes)){
+        if (empty($shapes)) {
             return self::LEGACY_SHAPES;
         }
 
         $enabledShapes = array_keys(
             array_filter(
                 $shapes,
-                static fn (mixed $enabled) : bool => filter_var($enabled, FILTER_VALIDATE_BOOLEAN)
+                static fn (mixed $enabled): bool => filter_var($enabled, FILTER_VALIDATE_BOOLEAN)
             )
         );
 
