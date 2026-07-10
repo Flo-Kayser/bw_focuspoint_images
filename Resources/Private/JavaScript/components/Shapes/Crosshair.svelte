@@ -1,5 +1,6 @@
 <script>
-    import {activateFocuspoint} from '../../store.svelte.js'
+    import interact from 'interactjs'
+    import {activateFocuspoint, focuspoints} from '../../store.svelte.js'
 
     let {
         focuspoint,
@@ -17,6 +18,54 @@
 
     function getY() {
         return (focuspoint?.y ?? 0) * canvasHeight
+    }
+    function clamp(value) {
+        return Math.max(0, Math.min(1, value))
+    }
+
+    function crosshairInteraction(node) {
+        const interactable = interact(node).draggable({
+            modifiers: [
+                interact.modifiers.restrictRect({
+                    restriction: 'parent',
+                    endOnly: false,
+                }),
+            ],
+            listeners: {
+                start() {
+                    activateFocuspoint(index)
+                },
+
+                move(event) {
+                    if (canvasWidth <= 0 || canvasHeight <= 0) {
+                        return
+                    }
+
+                    focuspoints.update((items) =>
+                        items.map((point, currentIndex) => {
+                            if (currentIndex !== index) {
+                                return point
+                            }
+
+                            const currentX = (point.x ?? 0) * canvasWidth
+                            const currentY = (point.y ?? 0) * canvasHeight
+
+                            return {
+                                ...point,
+                                x: clamp((currentX + event.dx) / canvasWidth),
+                                y: clamp((currentY + event.dy) / canvasHeight),
+                            }
+                        })
+                    )
+                },
+            },
+        })
+
+        return {
+            destroy() {
+                interactable.unset()
+            },
+        }
     }
 </script>
 
@@ -44,10 +93,10 @@
 
 <button
     type="button"
+    use:crosshairInteraction
     class="crosshair-handle"
     class:active={focuspoint?.active}
     class:opacity-0={!initialized}
-    data-index={index}
     style="transform: translate3d({getX()}px, {getY()}px, 0) translate(-50%, -50%);"
     onclick={(event) => {
         event.preventDefault()

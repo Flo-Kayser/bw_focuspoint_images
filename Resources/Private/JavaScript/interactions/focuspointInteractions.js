@@ -147,55 +147,6 @@ const initPolygonInteraction = ({
       },
     })
 }
-const initCrosshairInteraction = ({
-                                    focuspoints,
-                                    activateFocuspoint,
-                                    getCanvasDimensions,
-                                  }) => {
-  interact('.crosshair-handle')
-    .draggable({
-      modifiers: [
-        interact.modifiers.restrictRect({
-          restriction: 'parent',
-          endOnly: false,
-        }),
-      ],
-      listeners: {
-        start(event) {
-          const index = getIndex(event)
-
-          if (index !== null) {
-            activateFocuspoint(index)
-          }
-        },
-
-        move(event) {
-          const index = getIndex(event)
-          const { canvasWidth, canvasHeight, isValid } = getCanvasSize(getCanvasDimensions)
-
-          if (index === null || !isValid) {
-            return
-          }
-
-          focuspoints.update((items) => items.map((point, currentIndex) => {
-            if (currentIndex !== index) {
-              return point
-            }
-
-            const currentX = (point.x ?? 0) * canvasWidth
-            const currentY = (point.y ?? 0) * canvasHeight
-
-            return {
-              ...point,
-              x: clamp((currentX + event.dx) / canvasWidth),
-              y: clamp((currentY + event.dy) / canvasHeight),
-            }
-          }))
-        },
-      },
-    })
-}
-
 export const initFocuspointInteractions = ({
                                             focuspoints,
                                             activateFocuspoint,
@@ -207,11 +158,9 @@ export const initFocuspointInteractions = ({
     getCanvasDimensions,
   }
 
-  initCrosshairInteraction(config)
   initPolygonInteraction(config)
 
   return () => {
-    interact('.crosshair-handle').unset()
     interact('.polygon-handle').unset()
     interact('.polygon-shape').unset()
   }
