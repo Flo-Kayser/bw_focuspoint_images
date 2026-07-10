@@ -14,9 +14,9 @@
         getFocuspointHeight
     } = $props()
 
-    let focuspointName = $derived(
-        (focuspoint, index) => focusPointName(index)
-    )
+    function getFocuspointName() {
+        return focusPointName(index)
+    }
 
     function clamp(value) {
         return Math.max(0, Math.min(1, value))
@@ -130,7 +130,7 @@
     data-x="{getPositionX(index)}"
     data-y="{getPositionY(index)}"
 >
-    <span class="text-break">{focuspointName(focuspoint, index)}</span>
+    <span class="text-break">{focusPointName(index)}</span>
 
     <span class="ui-resizable-handle ui-resizable-nw"></span>
     <span class="ui-resizable-handle ui-resizable-ne"></span>
@@ -140,10 +140,6 @@
 
 <style>
 
-    .focuspoint-shape--ellipse,
-    .focuspoint-shape--circle {
-        border-radius: 50%;
-    }
 
     .draggable {
         position: absolute;
