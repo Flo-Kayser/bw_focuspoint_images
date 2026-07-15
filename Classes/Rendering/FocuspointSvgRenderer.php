@@ -102,9 +102,9 @@ final class FocuspointSvgRenderer
     private function renderPrimitiveOutline(object $primitive, FocuspointSvgRenderOptions $options): string
     {
         $strokeColor=htmlspecialchars($options->outlineColor, ENT_QUOTES);
-        $attributes = 'stroke"' .$strokeColor . '" stroke-width="' .$options->outlineWidth . '" fill="none"';
+        $attributes = 'stroke="' .$strokeColor . '" stroke-width="' .$options->outlineWidth . '" fill="none"';
 
-        return match ($primitve->type ?? 'polygon'){
+        return match ($primitive->type ?? 'polygon'){
             default=> $this->renderPolygonPrimitive($primitive,$attributes, $options),
 //            @Todo all renderTypes
         };
@@ -132,7 +132,7 @@ final class FocuspointSvgRenderer
             $points
         ));
 
-        return '<polygon points="' . htmlspecialchars($pointString, ENT_QUOTES) . '"' . $attributes . '/>';
+        return '<polygon points="' . htmlspecialchars($pointString, ENT_QUOTES) . '" ' . $attributes . '/>';
     }
 
     private function toViewBox(mixed $value, FocuspointSvgRenderOptions $options): float

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BlueWays\BwFocuspointImages\Rendering;
+namespace Blueways\BwFocuspointImages\Rendering;
 
 final class FocuspointPrimitiveFactory
 {
@@ -60,7 +60,7 @@ final class FocuspointPrimitiveFactory
     {
         return (object)[
             'type' => 'polygon',
-            'points' => $point->verticies ?? [],
+            'points' => $point->vertices ?? [],
         ];
     }
 
