@@ -1,0 +1,142 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Blueways\BwFocuspointImages\Rendering;
+
+use TYPO3\CMS\Core\Resource\FileReference;
+
+final class FocuspointSvgRenderer
+{
+    public function __construct(
+        private readonly FocuspointPrimitiveFactory $primitiveFactory,
+    )
+    {
+    }
+
+    public function renderForFileReference(FileReference $fileReference, ?FocuspointSvgRenderOptions $options = null): string
+    {
+        $focusPoints = $fileReference->getReferenceProperty('focus_points');
+
+        if (!is_string($focusPoints) || $focusPoints === '') {
+            return '';
+        }
+
+        return $this->renderFromJson(
+            $focusPoints,
+            'focuspoint-mask-' . $fileReference->getUid(),
+            $options ?? FocuspointSvgRenderOptions::frontend()
+        );
+    }
+
+    private function renderFromJson(string $focusPoints, string $identifier, ?FocuspointSvgRenderOptions $options = null): string
+    {
+        if ($focusPoints === '') {
+            return '';
+        }
+
+        $points = json_decode($focusPoints, false) ?: [];
+
+        if(!is_array($points) || $points === []) {
+            return '';
+        }
+
+        return $this->renderFromPoints(
+            $points,
+            $identifier,
+            $options ?? FocuspointSvgRenderOptions::frontend()
+        );
+    }
+
+    private function renderFromPoints(array $points, string $identifier, FocuspointSvgRenderOptions $options): string
+    {
+        $identifier = preg_replace('/[^a-zA-Z0-9_-]/', '', $identifier) ?: 'focuspoint-svg';
+        $primitives = $this->collectPrimitives($points);
+
+        if($primitives === []){
+            return '';
+        }
+
+        $svg = '<svg viewBox="0 0 ' . $options->viewBoxSize . ' ' . $options->viewBoxSize . '"'
+            . ' preserveAspectRatio="none"'
+            . ' class="' . htmlspecialchars($options->className, ENT_QUOTES) . '"'
+            . ' xmlns="http://www.w3.org/2000/svg">';
+
+        if($options->renderOutline){
+            foreach ($primitives as $primitive) {
+                $svg .= $this->renderPrimitiveOutline($primitive, $options);
+            }
+        }
+
+//        @Todo renderFill, renderMask
+
+        $svg.='</svg>';
+
+        return $svg;
+    }
+
+    /**
+     * @param array<int, mixed> $points
+     * @return array<int, object>
+     */
+    private function collectPrimitives(array $points): array
+    {
+        $primitives = [];
+
+        foreach ($points as $point) {
+            if(!is_object($point)) {
+                continue;
+            }
+
+            array_push($primitives,
+            ...$this->primitiveFactory->createFromPoint($point)
+            );
+        }
+
+        return array_values(array_filter(
+            $primitives,
+            static fn(mixed $primitive): bool => is_object($primitive)
+        ));
+    }
+
+    private function renderPrimitiveOutline(object $primitive, FocuspointSvgRenderOptions $options): string
+    {
+        $strokeColor=htmlspecialchars($options->outlineColor, ENT_QUOTES);
+        $attributes = 'stroke"' .$strokeColor . '" stroke-width="' .$options->outlineWidth . '" fill="none"';
+
+        return match ($primitve->type ?? 'polygon'){
+            default=> $this->renderPolygonPrimitive($primitive,$attributes, $options),
+//            @Todo all renderTypes
+        };
+    }
+
+    private function renderPolygonPrimitive(object $primitive, string $attributes, FocuspointSvgRenderOptions $options): string
+    {
+        $points = $primitive->points ?? [];
+
+        if(!is_array($points)){
+            return '';
+        }
+
+        $points = array_values(array_filter(
+            $points,
+            static fn(mixed $point): bool => is_object($point)
+        ));
+
+        if(count($points) <3){
+            return '';
+        }
+
+        $pointString = implode(' ', array_map(
+            fn (object $point): string => $this->toViewBox($point->x??0, $options) . ',' . $this->toViewBox($point->y??0, $options),
+            $points
+        ));
+
+        return '<polygon points="' . htmlspecialchars($pointString, ENT_QUOTES) . '"' . $attributes . '/>';
+    }
+
+    private function toViewBox(mixed $value, FocuspointSvgRenderOptions $options): float
+    {
+        return max(0, min(1, (float)$value)) * $options->viewBoxSize;
+    }
+}
