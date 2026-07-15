@@ -19,7 +19,11 @@ function parseShapeIdentifier(filename) {
         return null
     }
 
-    return filename.slice(0, -SHAPE_EXTENSION.length).replace(/_/g, '-').toLowerCase()
+    return filename
+        .slice(0, -SHAPE_EXTENSION.length)
+        .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+        .replace(/_/g, '-')
+        .toLowerCase()
 }
 
 const focuspointShapesPlugin = () => ({
@@ -28,7 +32,7 @@ const focuspointShapesPlugin = () => ({
         const namespace = 'focuspoint_shapes_ns'
         const prefix = 'focuspoint-shapes:'
 
-        build.onResolve({filter: /^focuspoint-shapes:./}, args => ({
+        build.onResolve({filter: /^focuspoint-shapes:/}, args => ({
             path: path.join(args.resolveDir, args.path.slice(prefix.length)),
             namespace
         }))
@@ -41,7 +45,7 @@ const focuspointShapesPlugin = () => ({
                 })
             } catch {
                 return {
-                    contents: 'export const components = {}',
+                    contents: 'export const definitions = [];',
                     loader: 'js',
                     resolveDir: args.path,
                     watchDirs: [args.path]

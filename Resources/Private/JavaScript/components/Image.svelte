@@ -1,14 +1,13 @@
 <script>
-    import {activateFocuspoint,deactivateAllFocuspoints, focusPointName, focuspoints} from "../store.svelte";
+    import {deactivateAllFocuspoints, focuspoints} from "../store.svelte";
     import {onDestroy, onMount} from "svelte";
     import '../registerBuiltinShapes.js'
-    import {resolveShapeComponent} from "../shapeRegistry";
+    import {resolveShapeComponent} from "../shapeRegistry.js";
 
 
     let {image} = $props()
     let canvasHeight = $state(0)
     let canvasWidth = $state(0)
-    let focuspointName = $derived((focuspoint, index) => focusPointName(index))
     let img
     let initialized = $state(false)
     let isDarkMode = $state(false)
