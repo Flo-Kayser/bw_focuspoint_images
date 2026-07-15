@@ -20,7 +20,7 @@ use TYPO3\CMS\Core\Utility\MathUtility;
 #[Autoconfigure(public: true)]
 class HelperUtility
 {
-    private const LEGACY_SHAPES = [
+    private const LEGACY_SHAPE = [
         'rectangle',
     ];
 
@@ -41,7 +41,7 @@ class HelperUtility
             return [];
         }
 
-        $pageTs['shapes'] = $this->resolveShapes($pageTs['shapes'] ?? null);
+        $pageTs['allowedShapes'] = $this -> resolveAllowedShapes($pageTs['allowedShapes'] ?? null);
         $pageTs['pid'] = $pid;
 
         foreach ($pageTs['fields'] as $fieldName => $fieldConfig) {
@@ -65,20 +65,20 @@ class HelperUtility
         return $pageTs;
     }
 
-    private function resolveShapes(?array $shapes): array
+    private function resolveAllowedShapes(?string $allowedShapes): array
     {
-        if (empty($shapes)) {
-            return self::LEGACY_SHAPES;
+        if ($allowedShapes === null || trim($allowedShapes) === '') {
+            return self::LEGACY_SHAPE;
         }
 
-        $enabledShapes = array_keys(
-            array_filter(
-                $shapes,
-                static fn (mixed $enabled): bool => filter_var($enabled, FILTER_VALIDATE_BOOLEAN)
+        $allowedShapes = array_filter(
+            array_map(
+                static fn (string $shape): string => trim($shape),
+                explode(',', $allowedShapes)
             )
         );
 
-        return $enabledShapes ?: self::LEGACY_SHAPES;
+        return array_values($allowedShapes) ?: self::LEGACY_SHAPE;
     }
 
     public function getLinkExplanation(string $itemValue, int $pid): array

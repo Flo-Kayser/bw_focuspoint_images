@@ -10,17 +10,21 @@ export const focuspointChannelName = (itemFormElName) => `focuspoint:${itemFormE
 export const initStores = (initialValue, wizardConfig) => {
   const parsedWizardConfig = JSON.parse(wizardConfig)
 
+  const allowedShapes = Array.isArray(parsedWizardConfig.allowedShapes) && parsedWizardConfig.allowedShapes.length > 0
+    ? parsedWizardConfig.allowedShapes
+    : ['rectangle']
+
   wizardConfigStore.set({
     ...parsedWizardConfig,
-    shapes: parsedWizardConfig.shapes ?? ['rectangle']
+    allowedShapes,
   })
 
   const initalFocuspoints = JSON.parse(initialValue && initialValue !== '' ? initialValue : '[]').map(focuspoint => ({
     ...focuspoint,
-    shape: focuspoint.shape ?? 'rectangle'
+    shape: focuspoint.shape ?? allowedShapes[0] ?? 'rectangle'
   }))
 
-    focuspoints.set(initalFocuspoints);
+  focuspoints.set(initalFocuspoints);
 }
 
 /**

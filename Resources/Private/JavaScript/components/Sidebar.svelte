@@ -92,10 +92,10 @@
                     role="tabpanel"
                     aria-labelledby="cropper-accordion-heading-{index}">
                     <div class="panel-body">
-                        {#if $wizardConfigStore.shapes.length > 1}
+                        {#if $wizardConfigStore.allowedShapes.length > 1}
                             <Shape
                                 {index}
-                                shapes={$wizardConfigStore.shapes}
+                                shapes={$wizardConfigStore.allowedShapes}
                             />
                         {/if}
                         {#each Object.entries($wizardConfigStore.fields) as [key, field]}
