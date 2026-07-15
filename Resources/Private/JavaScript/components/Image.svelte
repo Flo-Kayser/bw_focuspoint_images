@@ -1,7 +1,8 @@
 <script>
     import {activateFocuspoint,deactivateAllFocuspoints, focusPointName, focuspoints} from "../store.svelte";
     import {onDestroy, onMount} from "svelte";
-    import FocuspointShape from "./Shapes/FocuspointShape.svelte";
+    import '../registerBuiltinShapes.js'
+    import {resolveShapeComponent} from "../shapeRegistry";
 
 
     let {image} = $props()
@@ -163,17 +164,23 @@
         }
     }}>
         {#each $focuspoints as focuspoint, index}
-            <FocuspointShape
-                {focuspoint}
-                {index}
-                {initialized}
-                {canvasWidth}
-                {canvasHeight}
-                {getPositionX}
-                {getPositionY}
-                {getFocuspointWidth}
-                {getFocuspointHeight}
-            />
+            {@const Component = resolveShapeComponent(focuspoint.shape ?? 'rectangle')}
+
+            {#key focuspoint.shape ?? 'rectangle'}
+                <!-- svelte-ignore svelte_component_deprecated -->
+                <svelte:component
+                    this={Component}
+                    {focuspoint}
+                    {index}
+                    {initialized}
+                    {canvasWidth}
+                    {canvasHeight}
+                    {getPositionX}
+                    {getPositionY}
+                    {getFocuspointWidth}
+                    {getFocuspointHeight}
+                />
+            {/key}
         {/each}
         <img bind:this={img} src={image} alt="Selected" unselectable="on" />
     </div>

@@ -1,11 +1,85 @@
 import esbuild from "esbuild";
 import sveltePlugin from "esbuild-svelte";
+import * as path from 'node:path'
+import {readdir} from 'node:fs'
+import {promisify} from 'node:util'
 
 let devMode = true;
 
 const ignoreWarnings = new Set([
     "'TYPO3' is not defined"
 ])
+
+// ── Shape Registry ─────────────────────────────────────
+
+const SHAPE_EXTENSION = '.svelte'
+
+function parseShapeIdentifier(filename) {
+    if (!filename.endsWith(SHAPE_EXTENSION)) {
+        return null
+    }
+
+    return filename.slice(0, -SHAPE_EXTENSION.length).replace(/_/g, '-').toLowerCase()
+}
+
+const focuspointShapesPlugin = () => ({
+    name: 'focuspoint-shapes',
+    setup(build) {
+        const namespace = 'focuspoint_shapes_ns'
+        const prefix = 'focuspoint-shapes:'
+
+        build.onResolve({filter: /^focuspoint-shapes:./}, args => ({
+            path: path.join(args.resolveDir, args.path.slice(prefix.length)),
+            namespace
+        }))
+
+        build.onLoad({filter: /.*/, namespace}, async (args) => {
+            let files
+            try {
+                files = await promisify(readdir)(args.path, {
+                    withFileTypes: true,
+                })
+            } catch {
+                return {
+                    contents: 'export const components = {}',
+                    loader: 'js',
+                    resolveDir: args.path,
+                    watchDirs: [args.path]
+                }
+            }
+
+            const shapes = files
+                .filter(file => file.isFile())
+                .map(file => {
+                    const identifier = parseShapeIdentifier(file.name)
+                    if (!identifier) {
+                        return null
+                    }
+                    return {
+                        identifier,
+                        modulePath: path.join(args.path, file.name)
+                    }
+                })
+                .filter(Boolean)
+                .sort((a, b) => a.identifier.localeCompare(b.identifier))
+
+            let contents = shapes.map((shape,index)=>`import s${index} from '${shape.modulePath}';`).join('\n')
+
+            contents += '\nexport const definitions = [\n'
+            contents += shapes.map((shape,index)=>`\t{identifier: '${shape.identifier}', component: s${index}},`).join('\n')
+            contents += '\n];\n'
+
+            return {
+                contents,
+                loader: 'js',
+                resolveDir: args.path,
+                watchDirs: [args.path]
+
+            }
+
+        })
+    }
+})
 
 const buildConfig = {
     entryPoints: [
@@ -18,6 +92,7 @@ const buildConfig = {
     outdir: "Resources/Public/JavaScript/",
     format: "esm",
     plugins: [
+        focuspointShapesPlugin(),
         sveltePlugin({
             compilerOptions: {
                 dev: devMode,
