@@ -1,6 +1,6 @@
 mod.tx_bwfocuspointimages.settings {
 
-  allowedShapes = ellipse, line, polygon
+  allowedShapes = ellipse, line, polygon, crosshair, rectangle
 
   fields {
 

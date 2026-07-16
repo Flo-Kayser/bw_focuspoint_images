@@ -62,17 +62,21 @@ final class FocuspointSvgRenderer
             . ' class="' . htmlspecialchars($options->className, ENT_QUOTES) . '"'
             . ' xmlns="http://www.w3.org/2000/svg">';
 
+        if ($options->renderMask) {
+            $svg .= $this->renderMask($primitives, $identifier, $options);
+        }
+
+        if($options->renderFill && $options->fillColor !==null){
+            foreach ($primitives as $primitive) {
+                $svg .= $this->renderPrimitiveFill($primitive, $options);
+            }
+        }
+
         if($options->renderOutline){
             foreach ($primitives as $primitive) {
                 $svg .= $this->renderPrimitiveOutline($primitive, $options);
             }
         }
-
-        if ($options->renderMask) {
-            $svg .= $this->renderMask($primitives, $identifier, $options);
-        }
-
-//        @Todo renderFill, renderMask
 
         $svg.='</svg>';
 
@@ -139,6 +143,21 @@ final class FocuspointSvgRenderer
                 $options
             ),
             default => $this->renderPolygonPrimitive($primitive, 'fill="#000"', $options),
+        };
+    }
+
+    private function renderPrimitiveFill(object $primitive, FocuspointSvgRenderOptions $options): string
+    {
+        $fillColor = htmlspecialchars($options->fillColor, ENT_QUOTES);
+
+        return match ($primitive->type ?? 'polygon') {
+            'ellipse' => $this->renderEllipsePrimitive($primitive, 'fill="' . $fillColor . '"', $options),
+            'line' => $this->renderLinePrimitive(
+                $primitive,
+                'stroke="' . $fillColor . '" stroke-width="' . $options->outlineWidth . '" stroke-linecap="round"',
+                $options
+            ),
+            default => $this->renderPolygonPrimitive($primitive, 'fill="' . $fillColor . '"', $options),
         };
     }
 
