@@ -133,8 +133,12 @@ final class FocuspointSvgRenderer
     {
         return match ($primitive->type ?? 'polygon') {
             'ellipse'=> $this->renderEllipsePrimitive($primitive, 'fill="#000"', $options),
+            'line' => $this->renderLinePrimitive(
+                $primitive,
+                'stroke="#000" stroke-width="4" stroke-linecap="round"',
+                $options
+            ),
             default => $this->renderPolygonPrimitive($primitive, 'fill="#000"', $options),
-//            @Todo all renderTypes
         };
     }
 
@@ -145,8 +149,8 @@ final class FocuspointSvgRenderer
 
         return match ($primitive->type ?? 'polygon'){
             'ellipse'=>$this->renderEllipsePrimitive($primitive, $attributes, $options),
+            'line' => $this->renderLinePrimitive($primitive, 'stroke="' . $strokeColor . '" stroke-width="4" fill="none" stroke-linecap="round"', $options),
             default=> $this->renderPolygonPrimitive($primitive,$attributes, $options),
-//            @Todo all renderTypes
         };
     }
 
@@ -188,6 +192,17 @@ final class FocuspointSvgRenderer
         $ry = $height / 2;
 
         return '<ellipse cx="'.$cx. '" cy="'.$cy.'" rx="'.$rx.'" ry="'.$ry.'"'.$attributes.'/>';
+
+    }
+
+    private function renderLinePrimitive(object $primitive, string $attributes, FocuspointSvgRenderOptions $options): string
+    {
+        $x1 = $this->toViewBox($primitive->x1 ?? 0, $options);
+        $y1 = $this->toViewBox($primitive->y1 ?? 0, $options);
+        $x2 = $this->toViewBox($primitive->x2 ?? 0, $options);
+        $y2 = $this->toViewBox($primitive->y2 ?? 0, $options);
+
+        return '<line x1="' . $x1 . '" y1="' . $y1 . '" x2="' . $x2 . '" y2="' . $y2 . '" ' . $attributes . ' />';
 
     }
 
