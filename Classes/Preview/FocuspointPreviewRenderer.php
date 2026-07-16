@@ -2,6 +2,8 @@
 
 namespace Blueways\BwFocuspointImages\Preview;
 
+use Blueways\BwFocuspointImages\Rendering\FocuspointSvgRenderer;
+use Blueways\BwFocuspointImages\Rendering\FocuspointSvgRenderOptions;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use TYPO3\CMS\Backend\Preview\StandardContentPreviewRenderer;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
@@ -12,17 +14,14 @@ use TYPO3\CMS\Core\Resource\Collection\LazyFileReferenceCollection;
 use TYPO3\CMS\Core\Resource\FileReference;
 use TYPO3\CMS\Core\Resource\ProcessedFile;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use Blueways\BwFocuspointImages\Rendering\FocuspointSvgRenderer;
-use Blueways\BwFocuspointImages\Rendering\FocuspointSvgRenderOptions;
 
 #[Autoconfigure(public: true)]
 class FocuspointPreviewRenderer extends StandardContentPreviewRenderer
 {
     public function __construct(
-        private readonly PageRenderer          $pageRenderer,
+        private readonly PageRenderer $pageRenderer,
         private readonly FocuspointSvgRenderer $focuspointSvgRenderer,
-    )
-    {
+    ) {
     }
 
     public function renderPageModulePreviewContent(GridColumnItem $item): string
@@ -144,5 +143,4 @@ class FocuspointPreviewRenderer extends StandardContentPreviewRenderer
 
         return $content;
     }
-
 }

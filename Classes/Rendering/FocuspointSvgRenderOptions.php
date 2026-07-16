@@ -21,7 +21,7 @@ final class FocuspointSvgRenderOptions
     ) {
     }
 
-    public static function backendPreview():self
+    public static function backendPreview(): self
     {
         return new self(
             renderMask: true,
@@ -35,7 +35,7 @@ final class FocuspointSvgRenderOptions
         );
     }
 
-    public static function frontend():self
+    public static function frontend(): self
     {
         return new self(
             renderMask: false,

@@ -9,7 +9,6 @@ final class FocuspointPrimitiveFactory
     /**
      * @return array<int, object>
      */
-
     public function createFromPoint(object $point): array
     {
         if (isset($point->primitive) && is_object($point->primitive)) {
@@ -19,7 +18,7 @@ final class FocuspointPrimitiveFactory
         if (isset($point->primitives) && is_array($point->primitives)) {
             return array_values(array_filter(
                 $point->primitives,
-                static fn(mixed $primitive): bool => is_object($primitive)
+                static fn (mixed $primitive): bool => is_object($primitive)
             ));
         }
 
@@ -31,7 +30,6 @@ final class FocuspointPrimitiveFactory
             default => [$this->rectangleToPolygonPrimitive($point)],
         };
     }
-
 
     private function ellipseToPrimitive(object $point): object
     {
@@ -54,7 +52,6 @@ final class FocuspointPrimitiveFactory
             'y2' => $point->y2 ?? (($point->y ?? 0) + ($point->height ?? 0.2)),
         ];
     }
-
 
     private function polygonToPrimitive(object $point): object
     {
@@ -97,7 +94,7 @@ final class FocuspointPrimitiveFactory
                 'x1' => $x - $size,
                 'y1' => $y,
                 'x2' => $x + $size,
-                'y2' => $y
+                'y2' => $y,
             ],
             (object)[
                 'type' => 'line',
@@ -105,7 +102,7 @@ final class FocuspointPrimitiveFactory
                 'y1' => $y - $size,
                 'x2' => $x,
                 'y2' => $y + $size,
-            ]
+            ],
 
         ];
     }
