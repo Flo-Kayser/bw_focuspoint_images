@@ -1,11 +1,12 @@
 <script>
-    import {focuspoints, getIcon, iconStore, toPersistedFocuspoints, wizardConfigStore} from '../store.svelte.js';
+    import {focuspoints, getIcon, iconStore, wizardConfigStore} from '../store.svelte.js';
+    import {normalizeFocuspoints, serializeFocuspoints} from '../focuspointData.js';
     import Notification from "@typo3/backend/notification.js";
     import {onMount} from "svelte";
 
     let {itemFormElName, isSettingsOpenValue = $bindable()} = $props()
     let focuspointArea;
-    let jsonPoints = $state(JSON.stringify(toPersistedFocuspoints($focuspoints)));
+    let jsonPoints = $state(serializeFocuspoints($focuspoints));
     let hasError = $state(false)
     let hasChange = $state(false)
 
@@ -17,7 +18,7 @@
             hasError = true
         }
 
-        hasChange = jsonPoints !== JSON.stringify(toPersistedFocuspoints($focuspoints))
+        hasChange = jsonPoints !== serializeFocuspoints($focuspoints)
     });
 
     onMount(() => {
@@ -43,12 +44,12 @@
     }
 
     function onUndoButtonClick() {
-        jsonPoints = JSON.stringify(toPersistedFocuspoints($focuspoints));
+        jsonPoints = serializeFocuspoints($focuspoints);
     }
 
     function onSaveButtonClick() {
         try {
-            $focuspoints = JSON.parse(jsonPoints);
+            $focuspoints = normalizeFocuspoints(jsonPoints, $wizardConfigStore);
             isSettingsOpenValue = false
         } catch (e) {
             Notification.error('Error', 'Invalid JSON', 5);

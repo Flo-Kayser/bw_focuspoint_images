@@ -1,20 +1,13 @@
 import {writable, get} from 'svelte/store';
 import Icons from '@typo3/backend/icons.js'
 import {createShapeDefaults} from './shapeRegistry.js'
+import {normalizeFocuspoints} from './focuspointData.js'
 
 export const wizardConfigStore = writable(null);
 
 export const focuspoints = writable([]);
 
 export const focuspointChannelName = (itemFormElName) => `focuspoint:${itemFormElName}`
-
-export const toPersistedFocuspoints = (points) => {
-  if (!Array.isArray(points)) {
-    return []
-  }
-
-  return points.map(({active, ...focuspoint}) => focuspoint)
-}
 
 export const initStores = (initialValue, wizardConfig) => {
   const parsedWizardConfig = JSON.parse(wizardConfig)
@@ -28,22 +21,12 @@ export const initStores = (initialValue, wizardConfig) => {
     allowedShapes,
   })
 
-  const defaultGeometry = {
-    width: parseFloat(parsedWizardConfig.defaultWidth) || 0.2,
-    height: parseFloat(parsedWizardConfig.defaultHeight) || 0.2,
-  }
-
-  const initalFocuspoints = JSON.parse(initialValue && initialValue !== '' ? initialValue : '[]').map(focuspoint => {
-    const shape = focuspoint.shape ?? allowedShapes[0] ?? 'rectangle'
-
-    return {
-      ...createShapeDefaults(shape, defaultGeometry),
-      ...focuspoint,
-      shape,
-    }
+  const initialFocuspoints = normalizeFocuspoints(initialValue, {
+    ...parsedWizardConfig,
+    allowedShapes,
   })
 
-  focuspoints.set(initalFocuspoints);
+  focuspoints.set(initialFocuspoints);
 }
 
 /**

@@ -34,7 +34,8 @@
     import {onDestroy, onMount} from "svelte";
     import Image from './components/Image.svelte';
     import Sidebar from "./components/Sidebar.svelte";
-    import {initStores, focuspoints, focuspointChannelName, activateFocuspoint, deactivateAllFocuspoints, toPersistedFocuspoints} from './store.svelte.js';
+    import {initStores, focuspoints, focuspointChannelName, activateFocuspoint, deactivateAllFocuspoints} from './store.svelte.js';
+    import {toPersistedFocuspoints} from './focuspointData.js';
     import interact from 'interactjs';
     import Settings from "./components/Settings.svelte";
 
