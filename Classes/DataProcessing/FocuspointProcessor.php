@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Blueways\BwFocuspointImages\DataProcessing;
 
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 use TYPO3\CMS\Frontend\DataProcessing\FilesProcessor;
 
+#[Autoconfigure(public: true)]
 final class FocuspointProcessor extends FilesProcessor
 {
     public function __construct(
