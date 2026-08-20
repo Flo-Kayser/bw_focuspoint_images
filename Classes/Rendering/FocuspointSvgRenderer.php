@@ -10,8 +10,7 @@ final class FocuspointSvgRenderer
 {
     public function __construct(
         private readonly FocuspointPrimitiveFactory $primitiveFactory,
-    )
-    {
+    ) {
     }
 
     public function renderForFileReference(FileReference $fileReference, ?FocuspointSvgRenderOptions $options = null): string
@@ -37,7 +36,7 @@ final class FocuspointSvgRenderer
 
         $points = json_decode($focusPoints, false) ?: [];
 
-        if(!is_array($points) || $points === []) {
+        if (!is_array($points) || $points === []) {
             return '';
         }
 
@@ -53,7 +52,7 @@ final class FocuspointSvgRenderer
         $identifier = preg_replace('/[^a-zA-Z0-9_-]/', '', $identifier) ?: 'focuspoint-svg';
         $primitives = $this->collectPrimitives($points);
 
-        if($primitives === []){
+        if ($primitives === []) {
             return '';
         }
 
@@ -66,13 +65,13 @@ final class FocuspointSvgRenderer
             $svg .= $this->renderMask($primitives, $identifier, $options);
         }
 
-        if($options->renderFill && $options->fillColor !==null){
+        if ($options->renderFill && $options->fillColor !==null) {
             foreach ($primitives as $primitive) {
                 $svg .= $this->renderPrimitiveFill($primitive, $options);
             }
         }
 
-        if($options->renderOutline){
+        if ($options->renderOutline) {
             foreach ($primitives as $primitive) {
                 $svg .= $this->renderPrimitiveOutline($primitive, $options);
             }
@@ -92,12 +91,13 @@ final class FocuspointSvgRenderer
         $primitives = [];
 
         foreach ($points as $point) {
-            if(!is_object($point)) {
+            if (!is_object($point)) {
                 continue;
             }
 
-            array_push($primitives,
-            ...$this->primitiveFactory->createFromPoint($point)
+            array_push(
+                $primitives,
+                ...$this->primitiveFactory->createFromPoint($point)
             );
         }
 
@@ -161,12 +161,12 @@ final class FocuspointSvgRenderer
     private function renderPrimitiveOutline(object $primitive, FocuspointSvgRenderOptions $options): string
     {
         $strokeColor=htmlspecialchars($options->outlineColor, ENT_QUOTES);
-        $attributes = 'stroke="' .$strokeColor . '" stroke-width="' .$options->outlineWidth . '" fill="none"';
+        $attributes = 'stroke="' . $strokeColor . '" stroke-width="' . $options->outlineWidth . '" fill="none"';
 
-        return match ($primitive->type ?? 'polygon'){
+        return match ($primitive->type ?? 'polygon') {
             'ellipse'=>$this->renderEllipsePrimitive($primitive, $attributes, $options),
             'line' => $this->renderLinePrimitive($primitive, 'stroke="' . $strokeColor . '" stroke-width="' . $options->outlineWidth . '" fill="none" stroke-linecap="round"', $options),
-            default=> $this->renderPolygonPrimitive($primitive,$attributes, $options),
+            default=> $this->renderPolygonPrimitive($primitive, $attributes, $options),
         };
     }
 
@@ -174,16 +174,16 @@ final class FocuspointSvgRenderer
     {
         $points = $primitive->points ?? [];
 
-        if(!is_array($points)){
+        if (!is_array($points)) {
             return '';
         }
 
         $points = array_values(array_filter(
             $points,
-            static fn(mixed $point): bool => is_object($point)
+            static fn (mixed $point): bool => is_object($point)
         ));
 
-        if(count($points) <3){
+        if (count($points) <3) {
             return '';
         }
 
@@ -195,7 +195,7 @@ final class FocuspointSvgRenderer
         return '<polygon points="' . htmlspecialchars($pointString, ENT_QUOTES) . '" ' . $attributes . '/>';
     }
 
-    private function renderEllipsePrimitive(object $primitive,string $attributes, FocuspointSvgRenderOptions $options): string
+    private function renderEllipsePrimitive(object $primitive, string $attributes, FocuspointSvgRenderOptions $options): string
     {
         $x = $this->toViewBox($primitive->x??0, $options);
         $y = $this->toViewBox($primitive->y??0, $options);
@@ -207,8 +207,7 @@ final class FocuspointSvgRenderer
         $rx = $width / 2;
         $ry = $height / 2;
 
-        return '<ellipse cx="'.$cx. '" cy="'.$cy.'" rx="'.$rx.'" ry="'.$ry.'" '.$attributes.'/>';
-
+        return '<ellipse cx="' . $cx . '" cy="' . $cy . '" rx="' . $rx . '" ry="' . $ry . '" ' . $attributes . '/>';
     }
 
     private function renderLinePrimitive(object $primitive, string $attributes, FocuspointSvgRenderOptions $options): string
@@ -219,7 +218,6 @@ final class FocuspointSvgRenderer
         $y2 = $this->toViewBox($primitive->y2 ?? 0, $options);
 
         return '<line x1="' . $x1 . '" y1="' . $y1 . '" x2="' . $x2 . '" y2="' . $y2 . '" ' . $attributes . ' />';
-
     }
 
     private function toViewBox(mixed $value, FocuspointSvgRenderOptions $options): float
