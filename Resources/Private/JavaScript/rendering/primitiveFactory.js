@@ -1,3 +1,5 @@
+import {resolveShapePrimitiveFactory} from '../shapeRegistry.js'
+
 const DEFAULT_LINE_SIZE = 0.2
 const CROSSHAIR_SIZE = 0.05
 
@@ -14,7 +16,7 @@ function point(x, y) {
     }
 }
 
-function rectangleToPolygon(focuspoint) {
+export function rectangleToPolygon(focuspoint) {
     const x = number(focuspoint.x)
     const y = number(focuspoint.y)
     const width = number(focuspoint.width)
@@ -31,7 +33,7 @@ function rectangleToPolygon(focuspoint) {
     }
 }
 
-function ellipseToPrimitive(focuspoint) {
+export function ellipseToPrimitive(focuspoint) {
     return {
         type: 'ellipse',
         x: number(focuspoint.x),
@@ -41,7 +43,7 @@ function ellipseToPrimitive(focuspoint) {
     }
 }
 
-function lineToPrimitive(focuspoint) {
+export function lineToPrimitive(focuspoint) {
     const x1 = number(focuspoint.x)
     const y1 = number(focuspoint.y)
 
@@ -54,7 +56,7 @@ function lineToPrimitive(focuspoint) {
     }
 }
 
-function polygonToPrimitive(focuspoint) {
+export function polygonToPrimitive(focuspoint) {
     return {
         type: 'polygon',
         points: Array.isArray(focuspoint.vertices)
@@ -63,7 +65,7 @@ function polygonToPrimitive(focuspoint) {
     }
 }
 
-function crosshairToPrimitives(focuspoint) {
+export function crosshairToPrimitives(focuspoint) {
     const x = number(focuspoint.x)
     const y = number(focuspoint.y)
 
@@ -107,19 +109,10 @@ export function focuspointToPrimitives(focuspoint) {
         return storedPrimitives
     }
 
-    switch (focuspoint.shape ?? 'rectangle') {
-        case 'ellipse':
-        case 'circle':
-            return [ellipseToPrimitive(focuspoint)]
-        case 'line':
-            return [lineToPrimitive(focuspoint)]
-        case 'crosshair':
-            return crosshairToPrimitives(focuspoint)
-        case 'polygon':
-            return [polygonToPrimitive(focuspoint)]
-        default:
-            return [rectangleToPolygon(focuspoint)]
-    }
+    const shape = focuspoint.shape ?? 'rectangle'
+    const factory = resolveShapePrimitiveFactory(shape) ?? builtinPrimitiveFactories[shape] ?? builtinPrimitiveFactories.rectangle
+
+    return factory(focuspoint)
 }
 
 export function collectPrimitives(focuspoints) {
@@ -128,4 +121,13 @@ export function collectPrimitives(focuspoints) {
     }
 
     return focuspoints.flatMap(focuspointToPrimitives)
+}
+
+export const builtinPrimitiveFactories = {
+    rectangle: (focuspoint) => [rectangleToPolygon(focuspoint)],
+    ellipse: (focuspoint) => [ellipseToPrimitive(focuspoint)],
+    circle: (focuspoint) => [ellipseToPrimitive(focuspoint)],
+    line: (focuspoint) => [lineToPrimitive(focuspoint)],
+    crosshair: crosshairToPrimitives,
+    polygon: (focuspoint) => [polygonToPrimitive(focuspoint)],
 }
