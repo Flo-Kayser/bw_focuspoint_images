@@ -7,6 +7,7 @@
     import {html} from "lit"
     import Preview from "./components/Preview.svelte";
     import {focuspointChannelName} from './store.svelte.js'
+    import './registerBuiltinShapeDefinitions.js'
 
     let {itemFormElName, itemFormElValue, wizardConfig, image} = $props()
     let icon = $state('')

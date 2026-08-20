@@ -1,5 +1,6 @@
 import {writable, get} from 'svelte/store';
 import Icons from '@typo3/backend/icons.js'
+import {createShapeDefaults} from './shapeRegistry.js'
 
 export const wizardConfigStore = writable(null);
 
@@ -19,10 +20,20 @@ export const initStores = (initialValue, wizardConfig) => {
     allowedShapes,
   })
 
-  const initalFocuspoints = JSON.parse(initialValue && initialValue !== '' ? initialValue : '[]').map(focuspoint => ({
-    ...focuspoint,
-    shape: focuspoint.shape ?? allowedShapes[0] ?? 'rectangle'
-  }))
+  const defaultGeometry = {
+    width: parseFloat(parsedWizardConfig.defaultWidth) || 0.2,
+    height: parseFloat(parsedWizardConfig.defaultHeight) || 0.2,
+  }
+
+  const initalFocuspoints = JSON.parse(initialValue && initialValue !== '' ? initialValue : '[]').map(focuspoint => {
+    const shape = focuspoint.shape ?? allowedShapes[0] ?? 'rectangle'
+
+    return {
+      ...createShapeDefaults(shape, defaultGeometry),
+      ...focuspoint,
+      shape,
+    }
+  })
 
   focuspoints.set(initalFocuspoints);
 }
@@ -102,6 +113,7 @@ export const fieldMeetsCondition = (fieldName, point) => {
 
 export const createNewFocuspoint = () => {
     const config = get(wizardConfigStore);
+    const shape = config.allowedShapes[0] ?? 'rectangle'
 
     // create a new focuspoint with default fields
     const newFocuspoint = Object.keys(config.fields).reduce((acc, key) => {
@@ -109,12 +121,13 @@ export const createNewFocuspoint = () => {
       return acc;
     }, {});
 
-    newFocuspoint.shape ??= config.shapes[0] ?? 'rectangle'
-    // set default values
-    newFocuspoint.x = 0.333;
-    newFocuspoint.y =  0.333;
-    newFocuspoint.width = parseFloat(config.defaultWidth);
-    newFocuspoint.height = parseFloat(config.defaultHeight);
+    Object.assign(newFocuspoint, createShapeDefaults(shape, {
+      x: 0.333,
+      y: 0.333,
+      width: parseFloat(config.defaultWidth) || 0.2,
+      height: parseFloat(config.defaultHeight) || 0.2,
+    }))
+    newFocuspoint.shape = shape
 
     // add the new focuspoint to the store and activate it
     const newFocuspointIndex = get(focuspoints).length
