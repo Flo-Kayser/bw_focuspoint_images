@@ -24,7 +24,7 @@ final class FocuspointSvgRenderer
 
         return $this->renderFromJson(
             $focusPoints,
-            'focuspoint-mask-' . $fileReference->getUid(),
+            'focuspoint-mask-' . $fileReference->getUid() . '-' . bin2hex(random_bytes(6)),
             $options ?? FocuspointSvgRenderOptions::frontend()
         );
     }
@@ -113,10 +113,10 @@ final class FocuspointSvgRenderer
 
         $svg = '<mask id="' . htmlspecialchars($maskId, ENT_QUOTES) . '">';
         $svg .= '<rect x="0" y="0"'
-            . 'width="' . $options->viewBoxSize . '"'
-            . 'height="' . $options->viewBoxSize . '"'
-            . 'fill="#fff"'
-            . 'fill-opacity="' . $options->maskOpacity . '"/>';
+            . ' width="' . $options->viewBoxSize . '"'
+            . ' height="' . $options->viewBoxSize . '"'
+            . ' fill="#fff"'
+            . ' fill-opacity="' . $options->maskOpacity . '"/>';
 
         foreach ($primitives as $primitive) {
             $svg .= $this->renderPrimitiveMask($primitive, $options);
@@ -210,7 +210,7 @@ final class FocuspointSvgRenderer
         $rx = $width / 2;
         $ry = $height / 2;
 
-        return '<ellipse cx="'.$cx. '" cy="'.$cy.'" rx="'.$rx.'" ry="'.$ry.'"'.$attributes.'/>';
+        return '<ellipse cx="'.$cx. '" cy="'.$cy.'" rx="'.$rx.'" ry="'.$ry.'" '.$attributes.'/>';
 
     }
 

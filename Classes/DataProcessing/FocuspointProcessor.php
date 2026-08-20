@@ -34,13 +34,21 @@ class FocuspointProcessor extends FilesProcessor
         // the TCA is configured to use max. 1 image, however the file collector returns an array
         foreach ($processedData['images'] as $key => $file) {
             $points = $file->getProperty('focus_points') ?: '[]';
-            $points = json_decode((string)$points, false) ?: [];
+            $points = json_decode((string)$points, false);
+
+            if (!is_array($points)) {
+                $points = [];
+            }
 
             foreach ($points as $point) {
-                $point->x *= 100;
-                $point->y *= 100;
-                $point->height *= 100;
-                $point->width *= 100;
+                if (!is_object($point)) {
+                    continue;
+                }
+
+                $point->x = (float)($point->x ?? 0) * 100;
+                $point->y = (float)($point->y ?? 0) * 100;
+                $point->height = (float)($point->height ?? 0) * 100;
+                $point->width = (float)($point->width ?? 0) * 100;
                 // calculate center of each point for text positioning
                 $point->textX = $point->x + ($point->width / 2);
                 $point->textY = $point->y + ($point->height / 2);
