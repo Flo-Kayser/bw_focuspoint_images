@@ -24,9 +24,24 @@ export function resolveShapePrimitiveFactory(shape) {
 }
 
 export function createShapeDefaults(shape, context = {}) {
-  const defaults = (shapes.get(shape) ?? shapes.get('rectangle'))?.defaults
+  const definition = shapes.get(shape) ?? shapes.get('rectangle')
+  const defaults = definition?.defaults
 
   return typeof defaults === 'function'
     ? defaults(context)
     : {...defaults}
+}
+
+export function convertFocuspointToShape(focuspoint, shape) {
+  const definition = shapes.get(shape) ?? shapes.get('rectangle')
+  const {vertices, x2, y2, primitive, primitives, ...sharedData} = focuspoint
+  const geometry = typeof definition?.convertFrom === 'function'
+    ? definition.convertFrom(focuspoint)
+    : createShapeDefaults(shape, focuspoint)
+
+  return {
+    ...sharedData,
+    ...geometry,
+    shape,
+  }
 }

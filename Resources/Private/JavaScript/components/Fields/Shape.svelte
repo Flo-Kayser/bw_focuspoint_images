@@ -1,56 +1,21 @@
 <script>
     import {focuspoints} from '../../store.svelte.js'
+    import {convertFocuspointToShape} from '../../shapeRegistry.js'
 
     let {shapes, index} = $props()
     let options = $derived(shapes.map(value => ({
         value,
         label: value
     })))
-    function clamp(value) {
-        return Math.max(0, Math.min(1, value))
-    }
-
     function selectShape(value) {
         focuspoints.update((items) => items.map((focuspoint, currentIndex) => {
             if (currentIndex !== index) {
                 return focuspoint
             }
 
-            if (value === 'polygon' && focuspoint.shape !== 'polygon') {
-                const x = focuspoint.x ?? 0.25
-                const y = focuspoint.y ?? 0.25
-                const width = focuspoint.width ?? 0.2
-                const height = focuspoint.height ?? 0.2
-
-                const vertices = Array.isArray(focuspoint.vertices) && focuspoint.vertices.length >= 3
-                    ? focuspoint.vertices
-                    : [
-                        {x: clamp(x), y: clamp(y)},
-                        {x: clamp(x + width), y: clamp(y)},
-                        {x: clamp(x + width), y: clamp(y + height)},
-                        {x: clamp(x), y: clamp(y + height)},
-                    ]
-
-                return {
-                    ...focuspoint,
-                    shape: value,
-                    vertices,
-                }
-            }
-
-            if (value === 'crosshair' && focuspoint.shape !== 'crosshair') {
-                return {
-                    ...focuspoint,
-                    shape: value,
-                    x: clamp((focuspoint.x ?? 0) + ((focuspoint.width ?? 0) / 2)),
-                    y: clamp((focuspoint.y ?? 0) + ((focuspoint.height ?? 0) / 2)),
-                }
-            }
-
-            return {
-                ...focuspoint,
-                shape: value,
-            }
+            return focuspoint.shape === value
+                ? focuspoint
+                : convertFocuspointToShape(focuspoint, value)
         }))
     }
 </script>
