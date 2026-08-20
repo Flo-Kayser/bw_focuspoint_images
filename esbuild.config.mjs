@@ -93,7 +93,7 @@ const buildConfig = {
     mainFields: ["svelte", "browser", "module", "main"],
     conditions: ["svelte", "browser"],
     bundle: true,
-    outdir: "Resources/Public/JavaScript/",
+    outdir: process.env.FOCUSPOINT_BUILD_OUTDIR ?? "Resources/Public/JavaScript/",
     format: "esm",
     plugins: [
         focuspointShapesPlugin(),

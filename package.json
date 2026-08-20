@@ -1,6 +1,7 @@
 {
 	"name": "bw_focuspoint_images",
 	"version": "1.0.0",
+	"type": "module",
 	"description": "",
 	"dependencies": {
 		"bootstrap": "^5.3.3",
@@ -11,7 +12,8 @@
 	},
 	"scripts": {
 		"start": "node esbuild.config.mjs --watch",
-		"build": "node esbuild.config.mjs --build"
+		"build": "node esbuild.config.mjs --build",
+		"test": "node --test Tests/JavaScript/*.test.mjs"
 	},
 	"author": "",
 	"license": "GPL-3.0-or-later"
