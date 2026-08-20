@@ -101,10 +101,7 @@ final class FocuspointSvgRenderer
             );
         }
 
-        return array_values(array_filter(
-            $primitives,
-            static fn(mixed $primitive): bool => is_object($primitive)
-        ));
+        return $primitives;
     }
 
     private function renderMask(array $primitives, string $identifier, FocuspointSvgRenderOptions $options): string
@@ -139,7 +136,7 @@ final class FocuspointSvgRenderer
             'ellipse'=> $this->renderEllipsePrimitive($primitive, 'fill="#000"', $options),
             'line' => $this->renderLinePrimitive(
                 $primitive,
-                'stroke="#000" stroke-width="4" stroke-linecap="round"',
+                'stroke="#000" stroke-width="' . $options->maskLineWidth . '" stroke-linecap="round"',
                 $options
             ),
             default => $this->renderPolygonPrimitive($primitive, 'fill="#000"', $options),
@@ -168,7 +165,7 @@ final class FocuspointSvgRenderer
 
         return match ($primitive->type ?? 'polygon'){
             'ellipse'=>$this->renderEllipsePrimitive($primitive, $attributes, $options),
-            'line' => $this->renderLinePrimitive($primitive, 'stroke="' . $strokeColor . '" stroke-width="4" fill="none" stroke-linecap="round"', $options),
+            'line' => $this->renderLinePrimitive($primitive, 'stroke="' . $strokeColor . '" stroke-width="' . $options->outlineWidth . '" fill="none" stroke-linecap="round"', $options),
             default=> $this->renderPolygonPrimitive($primitive,$attributes, $options),
         };
     }

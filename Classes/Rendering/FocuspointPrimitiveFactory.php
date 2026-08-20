@@ -23,7 +23,7 @@ final class FocuspointPrimitiveFactory
         }
 
         return match ($point->shape ?? 'rectangle') {
-            'ellipse' => [$this->ellipseToPrimitive($point)],
+            'ellipse', 'circle' => [$this->ellipseToPrimitive($point)],
             'line' => [$this->lineToPrimitive($point)],
             'crosshair' => $this->crosshairToLinePrimitives($point),
             'polygon' => [$this->polygonToPrimitive($point)],
