@@ -1,25 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Blueways\BwFocuspointImages\DataProcessing;
 
-use TYPO3\CMS\Core\LinkHandling\TypoLinkCodecService;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 use TYPO3\CMS\Frontend\DataProcessing\FilesProcessor;
 
-class FocuspointProcessor extends FilesProcessor
+final class FocuspointProcessor extends FilesProcessor
 {
+    public function __construct(
+        private readonly FocuspointDataNormalizer $focuspointDataNormalizer,
+    ) {
+    }
+
     /**
-    * Inject image and decoded focus points into the template
-    *
-    * @return array
-    */
+     * Inject images and normalized focuspoints into the template.
+     */
     public function process(
         ContentObjectRenderer $cObj,
         array $contentObjectConfiguration,
         array $processorConfiguration,
-        array $processedData
-    ) {
+        array $processedData,
+    ): array {
         $processedData = parent::process($cObj, $contentObjectConfiguration, $processorConfiguration, $processedData);
 
         if (!isset($processedData['images']) || !is_array($processedData['images'])) {
@@ -28,56 +31,11 @@ class FocuspointProcessor extends FilesProcessor
 
         $processedData['points'] = [];
 
-        /** @var TypoLinkCodecService $typoLinkCodecService */
-        $typoLinkCodecService = GeneralUtility::makeInstance(TypoLinkCodecService::class);
-
-        // the TCA is configured to use max. 1 image, however the file collector returns an array
+        // The TCA allows one image, but FilesProcessor always returns a collection.
         foreach ($processedData['images'] as $key => $file) {
-            $points = $file->getProperty('focus_points') ?: '[]';
-            $points = json_decode((string)$points, false);
-
-            if (!is_array($points)) {
-                $points = [];
-            }
-
-            foreach ($points as $point) {
-                if (!is_object($point)) {
-                    continue;
-                }
-
-                $point->x = (float)($point->x ?? 0) * 100;
-                $point->y = (float)($point->y ?? 0) * 100;
-                $point->height = (float)($point->height ?? 0) * 100;
-                $point->width = (float)($point->width ?? 0) * 100;
-                // calculate center of each point for text positioning
-                $point->textX = $point->x + ($point->width / 2);
-                $point->textY = $point->y + ($point->height / 2);
-
-                foreach ($point as $fieldName => &$fieldValue) {
-                    // in case of old typolink syntax (v2.3.3): replace link field with typolink value
-                    if (is_object($fieldValue) && property_exists($fieldValue, 'key')) {
-                        $newLink = 't3://' . $fieldValue->key . '?uid=' . $fieldValue->uid;
-                        if (property_exists($fieldValue, 'target') && $fieldValue->target) {
-                            $newLink .= ' ' . $fieldValue->target;
-                        }
-
-                        $fieldValue = $newLink;
-                    }
-
-                    // in case of typolinks with target, add a new field {$fieldName}Target='_blank'
-                    if (is_string($fieldValue) && str_starts_with($fieldValue, 't3://')) {
-                        $linkValues = $typoLinkCodecService->decode($fieldValue);
-                        if ($linkValues['target']) {
-                            $attributeName = $fieldName . 'Target';
-                            $point->$attributeName = $linkValues['target'];
-                        }
-                    }
-                }
-
-                unset($fieldValue);
-            }
-
-            $processedData['points'][$key] = $points;
+            $processedData['points'][$key] = $this->focuspointDataNormalizer->normalizeForTemplate(
+                $file->getProperty('focus_points') ?: '[]',
+            );
         }
 
         return $processedData;
