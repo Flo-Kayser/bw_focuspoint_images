@@ -7,11 +7,12 @@
     import {html} from "lit"
     import Preview from "./components/Preview.svelte";
     import {focuspointChannelName} from './store.svelte.js'
+    import {parseFocuspoints} from './focuspointData.js'
     import './registerBuiltinShapeDefinitions.js'
 
     let {itemFormElName, itemFormElValue, wizardConfig, image} = $props()
     let icon = $state('')
-    let previewPoints = $derived(itemFormElValue ? JSON.parse(itemFormElValue) : [])
+    let previewPoints = $derived(parseFocuspoints(itemFormElValue))
     let channel
 
     onMount(() => {
