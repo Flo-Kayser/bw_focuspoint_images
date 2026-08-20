@@ -1,11 +1,11 @@
 <script>
-    import {focuspoints, getIcon, iconStore, wizardConfigStore} from '../store.svelte.js';
+    import {focuspoints, getIcon, iconStore, toPersistedFocuspoints, wizardConfigStore} from '../store.svelte.js';
     import Notification from "@typo3/backend/notification.js";
     import {onMount} from "svelte";
 
     let {itemFormElName, isSettingsOpenValue = $bindable()} = $props()
     let focuspointArea;
-    let jsonPoints = $state(JSON.stringify($focuspoints));
+    let jsonPoints = $state(JSON.stringify(toPersistedFocuspoints($focuspoints)));
     let hasError = $state(false)
     let hasChange = $state(false)
 
@@ -17,7 +17,7 @@
             hasError = true
         }
 
-        hasChange = jsonPoints !== JSON.stringify($focuspoints)
+        hasChange = jsonPoints !== JSON.stringify(toPersistedFocuspoints($focuspoints))
     });
 
     onMount(() => {
@@ -43,7 +43,7 @@
     }
 
     function onUndoButtonClick() {
-        jsonPoints = JSON.stringify($focuspoints);
+        jsonPoints = JSON.stringify(toPersistedFocuspoints($focuspoints));
     }
 
     function onSaveButtonClick() {

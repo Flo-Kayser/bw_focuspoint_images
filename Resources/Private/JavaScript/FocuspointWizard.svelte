@@ -34,7 +34,7 @@
     import {onDestroy, onMount} from "svelte";
     import Image from './components/Image.svelte';
     import Sidebar from "./components/Sidebar.svelte";
-    import {initStores, focuspoints, focuspointChannelName, activateFocuspoint, deactivateAllFocuspoints} from './store.svelte.js';
+    import {initStores, focuspoints, focuspointChannelName, activateFocuspoint, deactivateAllFocuspoints, toPersistedFocuspoints} from './store.svelte.js';
     import interact from 'interactjs';
     import Settings from "./components/Settings.svelte";
 
@@ -89,7 +89,10 @@
     });
 
     const onModalSave = () => {
-        channel?.postMessage({type: 'wizard-update', focuspoints: $focuspoints})
+        channel?.postMessage({
+            type: 'wizard-update',
+            focuspoints: toPersistedFocuspoints($focuspoints),
+        })
     }
 
     const handleSettings = () => {

@@ -8,6 +8,14 @@ export const focuspoints = writable([]);
 
 export const focuspointChannelName = (itemFormElName) => `focuspoint:${itemFormElName}`
 
+export const toPersistedFocuspoints = (points) => {
+  if (!Array.isArray(points)) {
+    return []
+  }
+
+  return points.map(({active, ...focuspoint}) => focuspoint)
+}
+
 export const initStores = (initialValue, wizardConfig) => {
   const parsedWizardConfig = JSON.parse(wizardConfig)
 
