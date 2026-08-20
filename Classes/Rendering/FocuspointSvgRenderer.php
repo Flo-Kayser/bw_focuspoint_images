@@ -34,8 +34,7 @@ final class FocuspointSvgRenderer
         string $identifier,
         string $descriptionIdPrefix,
         ?FocuspointSvgRenderOptions $options = null,
-    ): string
-    {
+    ): string {
         if ($focusPoints === '') {
             return '';
         }
@@ -59,8 +58,7 @@ final class FocuspointSvgRenderer
         string $identifier,
         string $descriptionIdPrefix,
         FocuspointSvgRenderOptions $options,
-    ): string
-    {
+    ): string {
         $identifier = preg_replace('/[^a-zA-Z0-9_-]/', '', $identifier) ?: 'focuspoint-svg';
         $primitiveGroups = $this->collectPrimitiveGroups($points);
 
@@ -273,8 +271,7 @@ final class FocuspointSvgRenderer
         object $primitive,
         FocuspointSvgRenderOptions $options,
         string $fillColor,
-    ): string
-    {
+    ): string {
         $fillColor = htmlspecialchars($fillColor, ENT_QUOTES);
         $fillOpacity = max(0, min(1, $options->fillOpacity));
 
@@ -293,8 +290,7 @@ final class FocuspointSvgRenderer
         object $primitive,
         FocuspointSvgRenderOptions $options,
         ?string $outlineColor = null,
-    ): string
-    {
+    ): string {
         $strokeColor = htmlspecialchars($outlineColor ?? $options->outlineColor, ENT_QUOTES);
         $attributes = 'stroke="' . $strokeColor . '" stroke-width="' . $options->outlineWidth . '" fill="none"';
 
