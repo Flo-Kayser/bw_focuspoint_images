@@ -15,9 +15,11 @@ final class FocuspointSvgRenderOptions
         public readonly float $maskLineWidth = 4.0,
         public readonly bool $renderFill = false,
         public readonly ?string $fillColor = null,
+        public readonly float $fillOpacity = 0.5,
         public readonly bool $renderOutline = true,
         public readonly string $outlineColor = '#ff8700',
         public readonly float $outlineWidth = 1.5,
+        public readonly bool $interactive = false,
     ) {
     }
 
@@ -39,10 +41,13 @@ final class FocuspointSvgRenderOptions
     {
         return new self(
             renderMask: false,
-            renderFill: false,
-            renderOutline: true,
+            renderFill: true,
+            fillColor: 'currentColor',
+            fillOpacity: 0.5,
+            renderOutline: false,
             outlineColor: 'currentColor',
             outlineWidth: 2.0,
+            interactive: true,
         );
     }
 }

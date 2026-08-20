@@ -54,11 +54,35 @@ final class FocuspointSvgViewHelper extends AbstractViewHelper
         );
 
         $this->registerArgument(
+            'renderFill',
+            'bool',
+            'Whether to render filled focuspoint areas.',
+            false,
+            true
+        );
+
+        $this->registerArgument(
+            'fillColor',
+            'string',
+            'Fallback SVG fill color.',
+            false,
+            'currentColor'
+        );
+
+        $this->registerArgument(
+            'fillOpacity',
+            'float',
+            'SVG fill opacity.',
+            false,
+            0.5
+        );
+
+        $this->registerArgument(
             'renderOutline',
             'bool',
             'Whether to render the focuspoint outline.',
             false,
-            true
+            false
         );
 
         $this->registerArgument(
@@ -84,6 +108,14 @@ final class FocuspointSvgViewHelper extends AbstractViewHelper
             false,
             0.5
         );
+
+        $this->registerArgument(
+            'interactive',
+            'bool',
+            'Whether focuspoints can reveal associated descriptions.',
+            false,
+            true
+        );
     }
 
     public function render(): string
@@ -98,9 +130,13 @@ final class FocuspointSvgViewHelper extends AbstractViewHelper
                 renderMask: (bool)$this->arguments['renderMask'],
                 maskColor: (string)$this->arguments['maskColor'],
                 maskOpacity: (float)$this->arguments['maskOpacity'],
+                renderFill: (bool)$this->arguments['renderFill'],
+                fillColor: (string)$this->arguments['fillColor'],
+                fillOpacity: (float)$this->arguments['fillOpacity'],
                 renderOutline: (bool)$this->arguments['renderOutline'],
                 outlineColor: (string)$this->arguments['outlineColor'],
                 outlineWidth: (float)$this->arguments['outlineWidth'],
+                interactive: (bool)$this->arguments['interactive'],
             )
         );
     }

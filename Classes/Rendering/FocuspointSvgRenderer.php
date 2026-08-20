@@ -24,11 +24,17 @@ final class FocuspointSvgRenderer
         return $this->renderFromJson(
             $focusPoints,
             'focuspoint-mask-' . $fileReference->getUid() . '-' . bin2hex(random_bytes(6)),
+            'focuspoint-' . $fileReference->getUid(),
             $options ?? FocuspointSvgRenderOptions::frontend()
         );
     }
 
-    private function renderFromJson(string $focusPoints, string $identifier, ?FocuspointSvgRenderOptions $options = null): string
+    private function renderFromJson(
+        string $focusPoints,
+        string $identifier,
+        string $descriptionIdPrefix,
+        ?FocuspointSvgRenderOptions $options = null,
+    ): string
     {
         if ($focusPoints === '') {
             return '';
@@ -43,16 +49,22 @@ final class FocuspointSvgRenderer
         return $this->renderFromPoints(
             $points,
             $identifier,
+            $descriptionIdPrefix,
             $options ?? FocuspointSvgRenderOptions::frontend()
         );
     }
 
-    private function renderFromPoints(array $points, string $identifier, FocuspointSvgRenderOptions $options): string
+    private function renderFromPoints(
+        array $points,
+        string $identifier,
+        string $descriptionIdPrefix,
+        FocuspointSvgRenderOptions $options,
+    ): string
     {
         $identifier = preg_replace('/[^a-zA-Z0-9_-]/', '', $identifier) ?: 'focuspoint-svg';
-        $primitives = $this->collectPrimitives($points);
+        $primitiveGroups = $this->collectPrimitiveGroups($points);
 
-        if ($primitives === []) {
+        if ($primitiveGroups === []) {
             return '';
         }
 
@@ -62,19 +74,15 @@ final class FocuspointSvgRenderer
             . ' xmlns="http://www.w3.org/2000/svg">';
 
         if ($options->renderMask) {
-            $svg .= $this->renderMask($primitives, $identifier, $options);
+            $svg .= $this->renderMask($primitiveGroups, $identifier, $options);
         }
 
-        if ($options->renderFill && $options->fillColor !==null) {
-            foreach ($primitives as $primitive) {
-                $svg .= $this->renderPrimitiveFill($primitive, $options);
-            }
-        }
-
-        if ($options->renderOutline) {
-            foreach ($primitives as $primitive) {
-                $svg .= $this->renderPrimitiveOutline($primitive, $options);
-            }
+        foreach ($primitiveGroups as $primitiveGroup) {
+            $svg .= $this->renderPrimitiveGroup(
+                $primitiveGroup,
+                $descriptionIdPrefix,
+                $options,
+            );
         }
 
         $svg.='</svg>';
@@ -84,27 +92,34 @@ final class FocuspointSvgRenderer
 
     /**
      * @param array<int, mixed> $points
-     * @return array<int, object>
+     * @return array<int, array{index: int, label: string, color: string, primitives: array<int, object>}>
      */
-    private function collectPrimitives(array $points): array
+    private function collectPrimitiveGroups(array $points): array
     {
-        $primitives = [];
+        $primitiveGroups = [];
 
-        foreach ($points as $point) {
+        foreach ($points as $index => $point) {
             if (!is_object($point)) {
                 continue;
             }
 
-            array_push(
-                $primitives,
-                ...$this->primitiveFactory->createFromPoint($point)
-            );
+            $primitives = $this->primitiveFactory->createFromPoint($point);
+            if ($primitives === []) {
+                continue;
+            }
+
+            $primitiveGroups[] = [
+                'index' => (int)$index,
+                'label' => is_string($point->name ?? null) ? $point->name : '',
+                'color' => is_string($point->color ?? null) ? $point->color : '',
+                'primitives' => $primitives,
+            ];
         }
 
-        return $primitives;
+        return $primitiveGroups;
     }
 
-    private function renderMask(array $primitives, string $identifier, FocuspointSvgRenderOptions $options): string
+    private function renderMask(array $primitiveGroups, string $identifier, FocuspointSvgRenderOptions $options): string
     {
         $maskId = $identifier . '-mask';
 
@@ -115,8 +130,10 @@ final class FocuspointSvgRenderer
             . ' fill="#fff"'
             . ' fill-opacity="' . $options->maskOpacity . '"/>';
 
-        foreach ($primitives as $primitive) {
-            $svg .= $this->renderPrimitiveMask($primitive, $options);
+        foreach ($primitiveGroups as $primitiveGroup) {
+            foreach ($primitiveGroup['primitives'] as $primitive) {
+                $svg .= $this->renderPrimitiveMask($primitive, $options);
+            }
         }
 
         $svg .= '</mask>';
@@ -128,6 +145,115 @@ final class FocuspointSvgRenderer
             . ' mask="url(#' . htmlspecialchars($maskId, ENT_QUOTES) . ')" />';
 
         return $svg;
+    }
+
+    /**
+     * @param array{index: int, label: string, color: string, primitives: array<int, object>} $primitiveGroup
+     */
+    private function renderPrimitiveGroup(
+        array $primitiveGroup,
+        string $descriptionIdPrefix,
+        FocuspointSvgRenderOptions $options,
+    ): string {
+        $content = '';
+
+        $fillColor = $primitiveGroup['color'] !== ''
+            ? $primitiveGroup['color']
+            : $options->fillColor;
+
+        if ($options->renderFill && $fillColor !== null) {
+            foreach ($primitiveGroup['primitives'] as $primitive) {
+                $content .= $this->renderPrimitiveFill($primitive, $options, $fillColor);
+            }
+        }
+
+        if ($options->renderOutline) {
+            foreach ($primitiveGroup['primitives'] as $primitive) {
+                $content .= $this->renderPrimitiveOutline(
+                    $primitive,
+                    $options,
+                    $primitiveGroup['color'] !== '' ? $primitiveGroup['color'] : null,
+                );
+            }
+        }
+
+        if (!$options->interactive || $content === '') {
+            return $content;
+        }
+
+        if ($primitiveGroup['label'] !== '') {
+            $content .= $this->renderPrimitiveGroupLabel($primitiveGroup, $options);
+        }
+
+        $descriptionId = $descriptionIdPrefix . '-' . ($primitiveGroup['index'] + 1) . '-description';
+        $attributes = ' class="focuspoint__shape"'
+            . ' data-description-id="' . htmlspecialchars($descriptionId, ENT_QUOTES) . '"'
+            . ' tabindex="0" role="button"'
+            . ' aria-controls="' . htmlspecialchars($descriptionId, ENT_QUOTES) . '"'
+            . ' aria-expanded="false"';
+
+        if ($primitiveGroup['label'] !== '') {
+            $attributes .= ' aria-label="' . htmlspecialchars($primitiveGroup['label'], ENT_QUOTES) . '"';
+        }
+
+        return '<g' . $attributes . '>' . $content . '</g>';
+    }
+
+    /**
+     * @param array{index: int, label: string, color: string, primitives: array<int, object>} $primitiveGroup
+     */
+    private function renderPrimitiveGroupLabel(
+        array $primitiveGroup,
+        FocuspointSvgRenderOptions $options,
+    ): string {
+        $coordinates = [];
+        $onlyLines = true;
+
+        foreach ($primitiveGroup['primitives'] as $primitive) {
+            if (($primitive->type ?? 'polygon') === 'line') {
+                $coordinates[] = [(float)($primitive->x1 ?? 0), (float)($primitive->y1 ?? 0)];
+                $coordinates[] = [(float)($primitive->x2 ?? 0), (float)($primitive->y2 ?? 0)];
+                continue;
+            }
+
+            $onlyLines = false;
+
+            if (($primitive->type ?? '') === 'ellipse') {
+                $x = (float)($primitive->x ?? 0);
+                $y = (float)($primitive->y ?? 0);
+                $width = (float)($primitive->width ?? 0);
+                $height = (float)($primitive->height ?? 0);
+                $coordinates[] = [$x, $y];
+                $coordinates[] = [$x + $width, $y + $height];
+                continue;
+            }
+
+            foreach ($primitive->points ?? [] as $point) {
+                if (is_object($point)) {
+                    $coordinates[] = [(float)($point->x ?? 0), (float)($point->y ?? 0)];
+                }
+            }
+        }
+
+        if ($coordinates === []) {
+            return '';
+        }
+
+        $xValues = array_column($coordinates, 0);
+        $yValues = array_column($coordinates, 1);
+        $x = (min($xValues) + max($xValues)) / 2;
+        $y = (min($yValues) + max($yValues)) / 2;
+
+        if ($onlyLines) {
+            $y -= 0.04;
+        }
+
+        return '<text class="focuspoint__label"'
+            . ' x="' . $this->toViewBox($x, $options) . '"'
+            . ' y="' . $this->toViewBox($y, $options) . '"'
+            . ' text-anchor="middle" dominant-baseline="central">'
+            . htmlspecialchars($primitiveGroup['label'], ENT_QUOTES)
+            . '</text>';
     }
 
     private function renderPrimitiveMask(object $primitive, FocuspointSvgRenderOptions $options): string
@@ -143,24 +269,33 @@ final class FocuspointSvgRenderer
         };
     }
 
-    private function renderPrimitiveFill(object $primitive, FocuspointSvgRenderOptions $options): string
+    private function renderPrimitiveFill(
+        object $primitive,
+        FocuspointSvgRenderOptions $options,
+        string $fillColor,
+    ): string
     {
-        $fillColor = htmlspecialchars($options->fillColor, ENT_QUOTES);
+        $fillColor = htmlspecialchars($fillColor, ENT_QUOTES);
+        $fillOpacity = max(0, min(1, $options->fillOpacity));
 
         return match ($primitive->type ?? 'polygon') {
-            'ellipse' => $this->renderEllipsePrimitive($primitive, 'fill="' . $fillColor . '"', $options),
+            'ellipse' => $this->renderEllipsePrimitive($primitive, 'fill="' . $fillColor . '" fill-opacity="' . $fillOpacity . '"', $options),
             'line' => $this->renderLinePrimitive(
                 $primitive,
-                'stroke="' . $fillColor . '" stroke-width="' . $options->outlineWidth . '" stroke-linecap="round"',
+                'stroke="' . $fillColor . '" stroke-opacity="' . $fillOpacity . '" stroke-width="' . $options->outlineWidth . '" stroke-linecap="round"',
                 $options
             ),
-            default => $this->renderPolygonPrimitive($primitive, 'fill="' . $fillColor . '"', $options),
+            default => $this->renderPolygonPrimitive($primitive, 'fill="' . $fillColor . '" fill-opacity="' . $fillOpacity . '"', $options),
         };
     }
 
-    private function renderPrimitiveOutline(object $primitive, FocuspointSvgRenderOptions $options): string
+    private function renderPrimitiveOutline(
+        object $primitive,
+        FocuspointSvgRenderOptions $options,
+        ?string $outlineColor = null,
+    ): string
     {
-        $strokeColor=htmlspecialchars($options->outlineColor, ENT_QUOTES);
+        $strokeColor = htmlspecialchars($outlineColor ?? $options->outlineColor, ENT_QUOTES);
         $attributes = 'stroke="' . $strokeColor . '" stroke-width="' . $options->outlineWidth . '" fill="none"';
 
         return match ($primitive->type ?? 'polygon') {
