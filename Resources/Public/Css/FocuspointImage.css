@@ -1,57 +1,97 @@
 .focuspoint {
-    display: inline-grid;
-    grid-template-columns: 100%;
-    grid-template-rows: auto min-content;
+    position: relative;
+    display: inline-block;
     max-width: 100%;
 }
 
-.focuspoint img {
-    grid-column: 1 / 2;
-    grid-row: 1 / 3;
+.focuspoint__image {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+    line-height: 0;
+}
+
+.focuspoint__image img {
+    display: block;
     max-width: 100%;
     height: auto;
 }
 
-.focuspoint__svg {
-    grid-column: 1 / 2;
-    grid-row: 1 / 3;
-    align-self: stretch;
-    justify-self: stretch;
+.focuspoint__image .focuspoint__svg {
+    position: absolute;
+    inset: 0;
+    display: block;
     width: 100%;
+    height: 100%;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
-.focuspoint__svg rect:hover {
-    opacity: 1;
-    fill: transparent;
-    stroke-dasharray: 2px;
+.focuspoint__shape {
+    cursor: pointer;
+    pointer-events: bounding-box;
 }
 
-.focuspoint__svg rect:hover + text {
-    display: none;
+.focuspoint__shape > polygon,
+.focuspoint__shape > ellipse {
+    transition: fill-opacity 180ms ease;
+}
+
+.focuspoint__shape > line {
+    transition: stroke-opacity 180ms ease;
+}
+
+.focuspoint__shape:hover > polygon,
+.focuspoint__shape:focus-visible > polygon,
+.focuspoint__shape.is-active > polygon,
+.focuspoint__shape:hover > ellipse,
+.focuspoint__shape:focus-visible > ellipse,
+.focuspoint__shape.is-active > ellipse {
+    fill-opacity: 0.7;
+}
+
+.focuspoint__shape:hover > line,
+.focuspoint__shape:focus-visible > line,
+.focuspoint__shape.is-active > line {
+    stroke-opacity: 0.8;
+}
+
+.focuspoint__label {
+    fill: #fff;
+    stroke: rgba(0, 0, 0, 0.8);
+    stroke-width: 0.75px;
+    paint-order: stroke fill;
+    font-size: 8px;
+    font-weight: 600;
+    pointer-events: none;
+    user-select: none;
 }
 
 .focuspoint__description {
-    grid-column: 1 / 2;
-    grid-row: 2 / 3;
+    position: absolute;
+    z-index: 2;
+    right: 0;
+    bottom: 0;
+    left: 0;
     background: rgba(0, 0, 0, 0.6);
     color: #fff;
     padding: 1rem;
-    display: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(0.5rem);
+    transition:
+        opacity 180ms ease,
+        transform 180ms ease,
+        visibility 0s linear 180ms;
 }
 
 .focuspoint__description p {
     margin: 0;
 }
 
-.focuspoint-line line {
-    stroke: rgba(255, 255, 255, 0.9);
-    stroke-width: 3;
-    stroke-linecap: round;
-    stroke-dasharray: 6 4;
-    vector-effect: non-scaling-stroke;
-}
-
-.focuspoint-line.active line {
-    stroke: #ff8700;
-    stroke-dasharray: none;
+.focuspoint__description.is-active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition-delay: 0s;
 }

@@ -15,17 +15,24 @@
 
         <div class="focuspoint">
 
-            <f:image image="{image}" maxWidth="1600" maxHeight="1200" />
+            <div class="focuspoint__image">
+                <f:image image="{image}" maxWidth="1600" maxHeight="1200" />
 
-            <fp:focuspointSvg
-                fileReference="{image}"
-                class="focuspoint__svg"
-                outlineColor="currentColor"
-                outlineWidth="2"
-            />
+                <fp:focuspointSvg
+                    fileReference="{image}"
+                    class="focuspoint__svg"
+                    renderFill="true"
+                    fillColor="currentColor"
+                    fillOpacity="0.5"
+                    renderOutline="false"
+                />
+            </div>
 
             <f:for each="{points.{key}}" as="point" iteration="i">
-                <div class="focuspoint__description" id="focuspoint-{image.uid}-{i.cycle}-description">
+                <div
+                    class="focuspoint__description"
+                    id="focuspoint-{image.uid}-{i.cycle}-description"
+                    aria-hidden="true">
                     <h3>{point.name}</h3>
                     <p>
                         <f:format.nl2br>{point.description}</f:format.nl2br>
